@@ -18,6 +18,7 @@ func _ready() -> void:
 	for map_info in GameState.MAPS:
 		map_option.add_item(map_info.name)
 	map_option.add_item("Votação dos jogadores")
+	# Os itens são chaves em português; a lista traduz sozinha ao exibir.
 	for i in GameState.MAPS.size():
 		var button := Button.new()
 		button.toggle_mode = true
@@ -67,9 +68,11 @@ func _refresh() -> void:
 	for id: int in Network.players:
 		var info: Dictionary = Network.players[id]
 		var label := Label.new()
-		label.text = "%s%s%s" % [info.name, "  (host)" if id == 1 else "", "  (você)" if id == multiplayer.get_unique_id() else ""]
+		# Nomes de jogadores não passam pela tradução (alguém pode se chamar "Casa").
+		label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		label.text = "%s%s%s" % [info.name, tr("  (host)") if id == 1 else "", tr("  (você)") if id == multiplayer.get_unique_id() else ""]
 		if GameState.is_map_vote() and GameState.votes.has(id):
-			label.text += "  · vota %s" % GameState.MAPS[GameState.votes[id]].name
+			label.text += tr("  · vota %s") % tr(GameState.MAPS[GameState.votes[id]].name)
 		label.modulate = info.color.lightened(0.2)
 		label.add_theme_font_size_override("font_size", 20)
 		player_list.add_child(label)
@@ -104,34 +107,33 @@ func _refresh() -> void:
 	var my_vote: int = GameState.votes.get(multiplayer.get_unique_id(), -1)
 	for i in vote_buttons.get_child_count():
 		var button := vote_buttons.get_child(i) as Button
-		button.text = "%s\n%d voto%s%s" % [GameState.MAPS[i].name, counts[i], "" if counts[i] == 1 else "s",
-			"  (seu voto)" if i == my_vote else ""]
+		button.text = "%s\n%s%s" % [tr(GameState.MAPS[i].name),
+			tr("1 voto") if counts[i] == 1 else tr("%d votos") % counts[i], tr("  (seu voto)") if i == my_vote else ""]
 		button.set_pressed_no_signal(i == my_vote)
 		button.modulate = Color("ffd54f") if i == my_vote else Color.WHITE
 	start_button.disabled = Network.players.size() < GameState.min_players()
 
-	var mode_text: String = "Modo %s: %s" % [GameState.MODES[settings.mode].name, GameState.MODES[settings.mode].description]
+	var mode_text: String = tr("Modo %s: %s") % [tr(GameState.MODES[settings.mode].name), tr(GameState.MODES[settings.mode].description)]
 	if auto_time and GameState.is_map_vote():
-		mode_text += "\nTempos automáticos: definidos pelo mapa vencedor e pelo número de jogadores."
+		mode_text += "\n" + tr("Tempos automáticos: definidos pelo mapa vencedor e pelo número de jogadores.")
 	if is_host:
 		var addresses := Network.get_local_addresses()
-		info_label.text = "%s\nSeu IP na rede: %s (porta %d)\n%s" % [
+		info_label.text = "%s\n%s\n%s" % [
 			mode_text,
-			", ".join(addresses) if not addresses.is_empty() else "desconhecido",
-			Network.PORT,
+			tr("Seu IP na rede: %s (porta %d)") % [", ".join(addresses) if not addresses.is_empty() else tr("desconhecido"), Network.PORT],
 			_status_text(),
 		]
 	else:
-		info_label.text = "%s\nAguardando o host iniciar a partida..." % mode_text
+		info_label.text = mode_text + "\n" + tr("Aguardando o host iniciar a partida...")
 
 
 func _status_text() -> String:
 	var count := Network.players.size()
 	if count < GameState.min_players():
-		return "Aguardando pelo menos %d jogadores..." % GameState.min_players()
+		return tr("Aguardando pelo menos %d jogadores...") % GameState.min_players()
 	if count == 1:
-		return "Modo de depuração: dá para iniciar sozinho e testar o mapa (F1–F6 na partida)."
-	return "Pronto para começar!"
+		return tr("Modo de depuração: dá para iniciar sozinho e testar o mapa (F1–F6 na partida).")
+	return tr("Pronto para começar!")
 
 
 func _push_settings() -> void:

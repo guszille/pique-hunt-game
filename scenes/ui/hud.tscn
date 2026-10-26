@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/hud.gd" id="1_hud"]
+[ext_resource type="Script" path="res://scenes/ui/language_option.gd" id="2_language"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_panel"]
 content_margin_left = 24.0
@@ -219,6 +220,19 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "Sair para o menu"
+
+[node name="LanguageRow" type="HBoxContainer" parent="PauseMenu/VBox"]
+layout_mode = 2
+
+[node name="LanguageLabel" type="Label" parent="PauseMenu/VBox/LanguageRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Idioma"
+
+[node name="LanguageOption" type="OptionButton" parent="PauseMenu/VBox/LanguageRow"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+script = ExtResource("2_language")
 
 [node name="UiAudio" type="AudioStreamPlayer" parent="."]
 unique_name_in_owner = true

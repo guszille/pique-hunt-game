@@ -54,7 +54,7 @@ func get_disguise() -> Dictionary:
 func get_label() -> String:
 	if kind != "":
 		return PropCatalog.display_name(kind)
-	return label if label != "" else "objeto"
+	return tr(label) if label != "" else tr("objeto")
 
 
 func _validate_property(property: Dictionary) -> void:

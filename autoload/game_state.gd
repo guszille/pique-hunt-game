@@ -19,6 +19,7 @@ const LOBBY_SCENE := "res://scenes/ui/lobby.tscn"
 const MENU_SCENE := "res://scenes/ui/main_menu.tscn"
 
 ## `prep_time` e `hunt_time` são os tempos sugeridos (veja `suggested_times`).
+## Nomes e descrições de mapas e modos são chaves de tradução (traduza com tr()).
 const MAPS: Array[Dictionary] = [
 	{"name": "Casa", "scene": "res://scenes/maps/house.tscn", "prep_time": 50, "hunt_time": 300,
 		"description": "Sobrado com porão, sótão, garagem e quintal, cheio de móveis."},
@@ -64,10 +65,11 @@ var phase := Phase.LOBBY
 var time_left := 0.0
 var seeker_id := 0
 var round_peers: Array = []
-var result_text := ""
+## Resultado da rodada, como mensagem [chave, args...] (veja Language.format).
+var result_message: Array = []
 ## Cronômetro parado pela tecla de depuração F6.
 var timer_paused := false
-## Mensagem exibida no menu principal ao voltar (ex.: "O host saiu").
+## Mensagem exibida no menu principal ao voltar (ex.: "O host saiu"), já traduzida.
 var menu_message := ""
 
 var game: Node = null
@@ -77,7 +79,7 @@ var _loaded := {}
 var _last_seeker_id := 0
 var _last_disguise := {}
 var _catch_blocked_until := {}
-var _map_announcement := ""
+var _map_announcement: Array = []
 var _whistle_timer := 0.0
 var _survive_timer := 0.0
 
@@ -214,19 +216,19 @@ func _load_map(map_index: int) -> void:
 ## Mapa fixo do host, ou o mais votado. Empate e falta de votos são sorteados.
 func _choose_map() -> int:
 	if not is_map_vote():
-		_map_announcement = ""
+		_map_announcement = []
 		return clampi(settings.map, 0, MAPS.size() - 1)
 	var counts := count_votes()
 	var best: int = counts.max()
 	var candidates := range(MAPS.size()).filter(func(i: int) -> bool: return counts[i] == best)
 	var chosen: int = candidates.pick_random()
-	var map_name: String = MAPS[chosen].name
+	var map_name := StringName(MAPS[chosen].name)
 	if best == 0:
-		_map_announcement = "Ninguém votou: o mapa sorteado foi %s." % map_name
+		_map_announcement = ["Ninguém votou: o mapa sorteado foi %s.", map_name]
 	elif candidates.size() > 1:
-		_map_announcement = "Empate na votação! O mapa sorteado foi %s." % map_name
+		_map_announcement = ["Empate na votação! O mapa sorteado foi %s.", map_name]
 	else:
-		_map_announcement = "Mapa escolhido na votação: %s (%d de %d votos)." % [map_name, best, votes.size()]
+		_map_announcement = ["Mapa escolhido na votação: %s (%d de %d votos).", map_name, best, votes.size()]
 	return chosen
 
 
@@ -289,7 +291,7 @@ func _peer_loaded() -> void:
 	_loaded[id] = true
 	_receive_loaded.rpc(_loaded.keys())
 	if id != 1:
-		_receive_phase.rpc_id(id, phase, time_left, seeker_id, round_peers, result_text)
+		_receive_phase.rpc_id(id, phase, time_left, seeker_id, round_peers, result_message)
 		_receive_timer_paused.rpc_id(id, timer_paused, time_left)
 	if phase == Phase.LOADING and Network.players.keys().all(func(p: int) -> bool: return _loaded.has(p)):
 		_begin_round()
@@ -354,10 +356,10 @@ func _request_catch(target_id: int) -> void:
 		target.infected = true
 		_catch_blocked_until[target_id] = _now() + INFECTION_COOLDOWN
 		_infect.rpc_id(target_id)
-		_announce.rpc("%s pegou %s! Agora %s também procura." % [seeker_name, target_name, target_name], COLOR_BAD)
+		_announce.rpc(["%s pegou %s! Agora %s também procura.", seeker_name, target_name, target_name], COLOR_BAD)
 	else:
 		target.caught = true
-		_announce.rpc("%s pegou %s!" % [seeker_name, target_name], COLOR_BAD)
+		_announce.rpc(["%s pegou %s!", seeker_name, target_name], COLOR_BAD)
 	_play_catch.rpc(target.global_position)
 	_check_end()
 
@@ -391,14 +393,14 @@ func _begin_round() -> void:
 			game.spawn_player(id, spawns[index % spawns.size()], Role.HIDER)
 			index += 1
 	Network.sync_players()
-	result_text = ""
+	result_message = []
 	if solo:
 		_start_prep()
 	else:
 		_set_phase(Phase.DRAW, DRAW_TIME)
-	if _map_announcement != "":
+	if not _map_announcement.is_empty():
 		_announce.rpc(_map_announcement, COLOR_INFO)
-		_map_announcement = ""
+		_map_announcement = []
 
 
 func _draw_seeker() -> int:
@@ -433,7 +435,7 @@ func _start_hunt() -> void:
 		return
 	_teleport.rpc_id(seeker_id, game.map.get_seeker_release())
 	_set_phase(Phase.HUNT, settings.hunt_time)
-	_announce.rpc("Lá vou eu! %s começou a procurar." % Network.get_player_name(seeker_id), COLOR_INFO)
+	_announce.rpc(["Lá vou eu! %s começou a procurar.", Network.get_player_name(seeker_id)], COLOR_INFO)
 
 
 func _tick_hunt(delta: float) -> void:
@@ -463,29 +465,29 @@ func _check_end() -> void:
 		return
 	# Na infecção, a rodada continua se algum ajudante ainda estiver no jogo.
 	if get_players().all(func(p) -> bool: return p.role != Role.SEEKER):
-		_end_round(false, "O procurador saiu. Rodada anulada.")
+		_end_round(false, ["O procurador saiu. Rodada anulada."])
 	elif _alive_hiders().is_empty():
 		_end_round(true)
 
 
-func _end_round(seeker_won: bool, reason := "") -> void:
-	if reason != "":
-		result_text = reason
+func _end_round(seeker_won: bool, reason: Array = []) -> void:
+	if not reason.is_empty():
+		result_message = reason
 	elif seeker_won:
 		Network.add_score(seeker_id, 5)
 		if is_infection():
 			for player in get_players():
 				if player.infected:
 					Network.add_score(player.peer_id, 2)
-			result_text = "Infecção completa! %s e os ajudantes pegaram todo mundo." % Network.get_player_name(seeker_id)
+			result_message = ["Infecção completa! %s e os ajudantes pegaram todo mundo.", Network.get_player_name(seeker_id)]
 		else:
-			result_text = "%s pegou todo mundo!" % Network.get_player_name(seeker_id)
+			result_message = ["%s pegou todo mundo!", Network.get_player_name(seeker_id)]
 	else:
 		var names := PackedStringArray()
 		for player in _alive_hiders():
 			Network.add_score(player.peer_id, 5)
 			names.append(Network.get_player_name(player.peer_id))
-		result_text = "Os escondidos venceram! Sobreviveram: %s" % ", ".join(names)
+		result_message = ["Os escondidos venceram! Sobreviveram: %s", ", ".join(names)]
 	Network.sync_players()
 	_set_phase(Phase.END, END_TIME)
 
@@ -495,7 +497,7 @@ func _next_round() -> void:
 
 
 func _set_phase(new_phase: Phase, duration: float) -> void:
-	_receive_phase.rpc(new_phase, duration, seeker_id, round_peers, result_text)
+	_receive_phase.rpc(new_phase, duration, seeker_id, round_peers, result_message)
 
 
 func _on_peer_left(id: int) -> void:
@@ -512,13 +514,13 @@ func _on_peer_left(id: int) -> void:
 		_send_everyone_to_lobby()
 		return
 	if phase == Phase.DRAW and id == seeker_id:
-		_end_round(false, "O procurador saiu. Rodada anulada.")
+		_end_round(false, ["O procurador saiu. Rodada anulada."])
 		return
 	_check_end()
 
 
 func _on_server_disconnected() -> void:
-	leave_to_menu("A conexão com o host caiu.")
+	leave_to_menu(tr("A conexão com o host caiu."))
 
 
 func _reset() -> void:
@@ -526,7 +528,7 @@ func _reset() -> void:
 	time_left = 0.0
 	seeker_id = 0
 	round_peers = []
-	result_text = ""
+	result_message = []
 	timer_paused = false
 	game = null
 	_loaded.clear()
@@ -561,15 +563,15 @@ func _request_debug(action: DebugAction) -> void:
 		DebugAction.TOGGLE_ROLE:
 			_debug_toggle_role(id)
 		DebugAction.SKIP_PHASE:
-			_announce.rpc("[depuração] %s pulou a fase." % who, COLOR_INFO)
+			_announce.rpc(["[depuração] %s pulou a fase.", who], COLOR_INFO)
 			_advance_phase()
 		DebugAction.NEXT_MAP:
 			var next := (current_map + 1) % MAPS.size()
-			_map_announcement = "[depuração] %s trocou o mapa para %s." % [who, MAPS[next].name]
+			_map_announcement = ["[depuração] %s trocou o mapa para %s.", who, StringName(MAPS[next].name)]
 			_load_map(next)
 		DebugAction.TOGGLE_PAUSE:
 			_receive_timer_paused.rpc(not timer_paused, time_left)
-			_announce.rpc("[depuração] %s %s o cronômetro." % [who, "pausou" if timer_paused else "retomou"], COLOR_INFO)
+			_announce.rpc(["[depuração] %s pausou o cronômetro." if timer_paused else "[depuração] %s retomou o cronômetro.", who], COLOR_INFO)
 
 
 func _debug_toggle_role(id: int) -> void:
@@ -584,8 +586,8 @@ func _debug_toggle_role(id: int) -> void:
 	_catch_blocked_until.erase(id)
 	if was_caught:
 		_teleport.rpc_id(id, game.map.get_hider_spawns().pick_random())
-	_announce.rpc("[depuração] %s agora é %s." % [Network.get_player_name(id),
-		"procurador" if player.role == Role.SEEKER else "escondido"], COLOR_INFO)
+	_announce.rpc(["[depuração] %s agora é procurador." if player.role == Role.SEEKER else "[depuração] %s agora é escondido.",
+		Network.get_player_name(id)], COLOR_INFO)
 
 
 # --- RPCs recebidos por todos -------------------------------------------------
@@ -635,12 +637,12 @@ func _go_to_lobby() -> void:
 
 
 @rpc("authority", "call_local", "reliable")
-func _receive_phase(new_phase: Phase, duration: float, seeker: int, peers: Array, text: String) -> void:
+func _receive_phase(new_phase: Phase, duration: float, seeker: int, peers: Array, result: Array) -> void:
 	phase = new_phase
 	time_left = duration
 	seeker_id = seeker
 	round_peers = peers
-	result_text = text
+	result_message = result
 	print("[peer %d] fase: %s (%ds) procurador: %s" % [multiplayer.get_unique_id(), Phase.keys()[phase], int(duration), Network.get_player_name(seeker)])
 	phase_changed.emit(phase)
 
@@ -652,7 +654,8 @@ func _receive_timer_paused(paused: bool, remaining: float) -> void:
 
 
 @rpc("authority", "call_local", "reliable")
-func _announce(text: String, color: Color) -> void:
+func _announce(message: Array, color: Color) -> void:
+	var text := Language.format(message)
 	print("[peer %d] aviso: %s" % [multiplayer.get_unique_id(), text])
 	notified.emit(text, color)
 
@@ -671,7 +674,7 @@ func _penalize() -> void:
 		var player = game.get_local_player()
 		if player:
 			player.apply_penalty(MISS_PENALTY)
-	notified.emit("Errou! Isso era só um objeto.", COLOR_BAD)
+	notified.emit(tr("Errou! Isso era só um objeto."), COLOR_BAD)
 
 
 @rpc("authority", "call_local", "reliable")
@@ -680,7 +683,7 @@ func _infect() -> void:
 		var player = game.get_local_player()
 		if player:
 			player.block_catch(INFECTION_COOLDOWN)
-	notified.emit("Você foi pego! Agora você ajuda a procurar (pode pegar em %d s)." % INFECTION_COOLDOWN, COLOR_BAD)
+	notified.emit(tr("Você foi pego! Agora você ajuda a procurar (pode pegar em %d s).") % INFECTION_COOLDOWN, COLOR_BAD)
 
 
 @rpc("authority", "call_local", "unreliable")

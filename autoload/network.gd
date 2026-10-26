@@ -157,8 +157,11 @@ func _on_auth_data(id: int, data: PackedByteArray) -> void:
 			return
 		print("Conexão recusada: cliente %d tem a versão %s (host: %s)" % [id, their_version, version])
 		_rejected_peers[id] = true
+		# `message` vai pronta para clientes antigos; os novos montam o texto no
+		# próprio idioma a partir de `host_version`.
 		scene_multiplayer.send_auth(id, var_to_bytes({
 			"ok": false,
+			"host_version": version,
 			"message": "Versões diferentes: você tem a %s e o host tem a %s.\nInstale a mesma versão do host para jogar juntos." % [their_version, version],
 		}))
 		# Dá tempo para a mensagem chegar antes de desconectar.
@@ -168,8 +171,12 @@ func _on_auth_data(id: int, data: PackedByteArray) -> void:
 	elif info.get("ok", false):
 		scene_multiplayer.complete_auth(id)
 	else:
+		var message := tr("O host recusou a conexão.")
+		if info.has("host_version"):
+			message = tr("Versões diferentes: você tem a %s e o host tem a %s.\nInstale a mesma versão do host para jogar juntos.") \
+				% [version, info.host_version]
 		# Fecha a conexão fora do callback: o Godot ainda está processando este pacote.
-		_reject.call_deferred(str(info.get("message", "O host recusou a conexão.")))
+		_reject.call_deferred(message)
 
 
 func _on_peer_authentication_failed(id: int) -> void:
@@ -177,7 +184,7 @@ func _on_peer_authentication_failed(id: int) -> void:
 		if not _rejected_peers.erase(id):
 			print("Cliente %d não completou a checagem de versão (versão antiga do jogo?)." % id)
 	elif multiplayer.multiplayer_peer:
-		_reject.call_deferred("O host não respondeu à checagem de versão.\nEle provavelmente tem uma versão antiga do jogo (anterior à %s)." % version)
+		_reject.call_deferred(tr("O host não respondeu à checagem de versão.\nEle provavelmente tem uma versão antiga do jogo (anterior à %s).") % version)
 
 
 func _reject(message: String) -> void:

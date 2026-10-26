@@ -92,6 +92,8 @@ func _enter_tree() -> void:
 
 func _ready() -> void:
 	_shape_nodes = [collision]
+	# O nome do jogador não passa pela tradução.
+	name_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	var is_local := is_multiplayer_authority()
 	camera.current = is_local
 	camera_pivot.top_level = true
@@ -120,7 +122,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_try_revert()
 	elif event.is_action_pressed("lock_rotation") and is_disguised():
 		rotation_locked = not rotation_locked
-		GameState.notified.emit("Rotação travada." if rotation_locked else "Rotação livre.", GameState.COLOR_INFO)
+		GameState.notified.emit(tr("Rotação travada.") if rotation_locked else tr("Rotação livre."), GameState.COLOR_INFO)
 	elif event.is_action_pressed("catch"):
 		_try_catch()
 
@@ -233,7 +235,7 @@ func _try_transform() -> void:
 		return
 	var prop := _get_aimed(GameState.TRANSFORM_RANGE) as Prop
 	if prop == null or not prop.disguisable:
-		GameState.notified.emit("Mire num objeto próximo para se transformar.", GameState.COLOR_INFO)
+		GameState.notified.emit(tr("Mire num objeto próximo para se transformar."), GameState.COLOR_INFO)
 		return
 	var new_disguise := prop.get_disguise()
 	if disguise == new_disguise:
@@ -241,7 +243,7 @@ func _try_transform() -> void:
 	# Começa alinhado como o original (encostado na parede, por exemplo).
 	var yaw := prop.global_rotation.y
 	if not _fits(new_disguise, yaw):
-		GameState.notified.emit("Sem espaço para virar isso aqui.", GameState.COLOR_BAD)
+		GameState.notified.emit(tr("Sem espaço para virar isso aqui."), GameState.COLOR_BAD)
 		return
 	_disguise_ready_at = _now() + GameState.DISGUISE_COOLDOWN
 	GameState.request_disguise(prop)
@@ -254,7 +256,7 @@ func _try_revert() -> void:
 	if not is_disguised():
 		return
 	if not _fits(ALIEN_BODY, rotation.y):
-		GameState.notified.emit("Sem espaço para voltar à forma de alien.", GameState.COLOR_BAD)
+		GameState.notified.emit(tr("Sem espaço para voltar à forma de alien."), GameState.COLOR_BAD)
 		return
 	GameState.request_revert()
 	_play(Sfx.poof())

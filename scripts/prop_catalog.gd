@@ -32,8 +32,9 @@ static func kinds() -> PackedStringArray:
 	return result
 
 
+## Nome do objeto no idioma atual (o nome do catálogo é a chave em português).
 static func display_name(kind: String) -> String:
-	return get_item(kind).get("name", kind)
+	return TranslationServer.translate(get_item(kind).get("name", kind))
 
 
 ## Cores finais de cada slot: as cores dadas substituem as padrão, na ordem.

@@ -1,0 +1,841 @@
+# Traduções do Pique-Prop para o inglês.
+# O msgid é o texto original em português usado no código e nas cenas.
+# Confira com: python3 tools/check_translations.py
+msgid ""
+msgstr ""
+"Project-Id-Version: Pique-Prop\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8-bit\n"
+
+msgid "Esconda-se virando objeto. Ou procure quem virou."
+msgstr "Hide by turning into objects. Or hunt the ones who did."
+
+msgid "Seu nome"
+msgstr "Your name"
+
+msgid "Digite seu nome"
+msgstr "Type your name"
+
+msgid "Hospedar partida"
+msgstr "Host game"
+
+msgid "IP do host"
+msgstr "Host IP"
+
+msgid "ex.: 192.168.0.10"
+msgstr "e.g. 192.168.0.10"
+
+msgid "Entrar"
+msgstr "Join"
+
+msgid "Sair"
+msgstr "Quit"
+
+msgid "Idioma"
+msgstr "Language"
+
+msgid "versão %s"
+msgstr "version %s"
+
+msgid "  ·  depuração: hospede e inicie sozinho para testar"
+msgstr "  ·  debug: host and start alone to test"
+
+msgid "Não foi possível hospedar na porta %d (erro %d)."
+msgstr "Could not host on port %d (error %d)."
+
+msgid "Endereço inválido (erro %d)."
+msgstr "Invalid address (error %d)."
+
+msgid "Conectando a %s..."
+msgstr "Connecting to %s..."
+
+msgid "Não foi possível conectar. Confira o IP e se o host está aberto."
+msgstr "Could not connect. Check the IP and whether the host is open."
+
+msgid "Jogador"
+msgstr "Player"
+
+msgid "A conexão com o host caiu."
+msgstr "The connection to the host was lost."
+
+msgid "O host recusou a conexão."
+msgstr "The host refused the connection."
+
+msgid "Versões diferentes: você tem a %s e o host tem a %s.\nInstale a mesma versão do host para jogar juntos."
+msgstr "Different versions: you have %s and the host has %s.\nInstall the same version as the host to play together."
+
+msgid "O host não respondeu à checagem de versão.\nEle provavelmente tem uma versão antiga do jogo (anterior à %s)."
+msgstr "The host did not answer the version check.\nThey probably have an older version of the game (before %s)."
+
+msgid "Sala de espera"
+msgstr "Lobby"
+
+msgid "Jogadores"
+msgstr "Players"
+
+msgid "Mapa"
+msgstr "Map"
+
+msgid "Modo"
+msgstr "Mode"
+
+msgid "Tempos automáticos"
+msgstr "Automatic times"
+
+msgid "Ajusta os tempos ao tamanho do mapa e ao número de jogadores."
+msgstr "Adjusts the times to the map size and the number of players."
+
+msgid "Ligado"
+msgstr "On"
+
+msgid "Desligado"
+msgstr "Off"
+
+msgid "Tempo p/ esconder (s)"
+msgstr "Time to hide (s)"
+
+msgid "Tempo de busca (s)"
+msgstr "Time to hunt (s)"
+
+msgid "Vote no mapa"
+msgstr "Vote for the map"
+
+msgid "Iniciar partida"
+msgstr "Start game"
+
+msgid "Votação dos jogadores"
+msgstr "Players' vote"
+
+msgid "  (host)"
+msgstr "  (host)"
+
+msgid "  (você)"
+msgstr "  (you)"
+
+msgid "  · vota %s"
+msgstr "  · votes %s"
+
+msgid "1 voto"
+msgstr "1 vote"
+
+msgid "%d votos"
+msgstr "%d votes"
+
+msgid "  (seu voto)"
+msgstr "  (your vote)"
+
+msgid "Modo %s: %s"
+msgstr "%s mode: %s"
+
+msgid "Tempos automáticos: definidos pelo mapa vencedor e pelo número de jogadores."
+msgstr "Automatic times: set by the winning map and the number of players."
+
+msgid "Seu IP na rede: %s (porta %d)"
+msgstr "Your network IP: %s (port %d)"
+
+msgid "desconhecido"
+msgstr "unknown"
+
+msgid "Aguardando o host iniciar a partida..."
+msgstr "Waiting for the host to start the game..."
+
+msgid "Aguardando pelo menos %d jogadores..."
+msgstr "Waiting for at least %d players..."
+
+msgid "Modo de depuração: dá para iniciar sozinho e testar o mapa (F1–F6 na partida)."
+msgstr "Debug mode: you can start alone and test the map (F1–F6 in game)."
+
+msgid "Pronto para começar!"
+msgstr "Ready to start!"
+
+msgid "Pausa"
+msgstr "Paused"
+
+msgid "Continuar"
+msgstr "Resume"
+
+msgid "Voltar ao lobby (todos)"
+msgstr "Back to lobby (everyone)"
+
+msgid "Sair para o menu"
+msgstr "Quit to menu"
+
+msgid "Placar"
+msgstr "Scoreboard"
+
+msgid "Casa"
+msgstr "House"
+
+msgid "Fábrica"
+msgstr "Factory"
+
+msgid "Parque"
+msgstr "Park"
+
+msgid "Sobrado com porão, sótão, garagem e quintal, cheio de móveis."
+msgstr "Two-story house with basement, attic, garage and backyard, full of furniture."
+
+msgid "Galpão alto com esteiras, prateleiras, barris e mezanino."
+msgstr "Tall warehouse with conveyors, shelves, barrels and a mezzanine."
+
+msgid "Parque de diversões ao entardecer: carrossel, roda-gigante, barracas e labirinto."
+msgstr "Amusement park at dusk: carousel, Ferris wheel, stalls and a maze."
+
+msgid "Clássico"
+msgstr "Classic"
+
+msgid "Infecção"
+msgstr "Infection"
+
+msgid "Quem é pego sai da rodada e assiste."
+msgstr "Whoever is caught leaves the round and watches."
+
+msgid "Quem é pego vira ajudante do procurador!"
+msgstr "Whoever is caught becomes the seeker's helper!"
+
+msgid "CARREGANDO"
+msgstr "LOADING"
+
+msgid "SORTEIO"
+msgstr "DRAW"
+
+msgid "PREPARAÇÃO"
+msgstr "HIDING"
+
+msgid "CAÇADA"
+msgstr "HUNT"
+
+msgid "FIM DA RODADA"
+msgstr "ROUND OVER"
+
+msgid "  (pausado)"
+msgstr "  (paused)"
+
+msgid "Escondidos livres: %d / %d"
+msgstr "Hiders left: %d / %d"
+
+msgid "Você é o procurador!\nContando até os outros se esconderem..."
+msgstr "You are the seeker!\nCounting while the others hide..."
+
+msgid "[E] Virar %s"
+msgstr "[E] Become %s"
+
+msgid "CÂMERA LIVRE"
+msgstr "FREE CAMERA"
+
+msgid "WASD + mouse para voar  |  [Espaço] sobe  |  [Shift] desce  |  [F2] voltar ao jogador"
+msgstr "WASD + mouse to fly  |  [Space] up  |  [Shift] down  |  [F2] back to player"
+
+msgid "ASSISTINDO"
+msgstr "SPECTATING"
+
+msgid "Você entra na próxima rodada.  WASD + mouse para voar  |  [Tab] Placar"
+msgstr "You join next round.  WASD + mouse to fly  |  [Tab] Scoreboard"
+
+msgid "AJUDANTE DO PROCURADOR"
+msgstr "SEEKER'S HELPER"
+
+msgid "PROCURADOR"
+msgstr "SEEKER"
+
+msgid "  (lento!)"
+msgstr "  (slowed!)"
+
+msgid "[Clique] Pegar (de perto)  |  Errar num objeto deixa você lento  |  [Tab] Placar"
+msgstr "[Click] Catch (up close)  |  Hitting an object slows you down  |  [Tab] Scoreboard"
+
+msgid "PEGO!"
+msgstr "CAUGHT!"
+
+msgid "Você foi pego. Voe e assista: WASD, [Espaço] sobe, [Shift] desce  |  [Tab] Placar"
+msgstr "You were caught. Fly and watch: WASD, [Space] up, [Shift] down  |  [Tab] Scoreboard"
+
+msgid "ESCONDIDO (disfarçado)"
+msgstr "HIDER (disguised)"
+
+msgid "[E] Trocar de objeto  |  [Q] Voltar a ser alien  |  [R] Rotação: %s  |  [Shift] Congelar"
+msgstr "[E] Switch object  |  [Q] Back to alien  |  [R] Rotation: %s  |  [Shift] Freeze"
+
+msgid "TRAVADA"
+msgstr "LOCKED"
+
+msgid "livre"
+msgstr "free"
+
+msgid "ESCONDIDO"
+msgstr "HIDER"
+
+msgid "Mire num objeto e aperte [E] para virar ele  |  [Espaço] Pular  |  [Tab] Placar"
+msgstr "Aim at an object and press [E] to become it  |  [Space] Jump  |  [Tab] Scoreboard"
+
+msgid "Esperando todos carregarem..."
+msgstr "Waiting for everyone to load..."
+
+msgid "Corra e se esconda!"
+msgstr "Run and hide!"
+
+msgid "%s vai procurar!\nModo %s: %s"
+msgstr "%s is the seeker!\n%s mode: %s"
+
+msgid "Sorteando quem procura..."
+msgstr "Drawing the seeker..."
+
+msgid "%d pts"
+msgstr "%d pts"
+
+msgid "Rotação travada."
+msgstr "Rotation locked."
+
+msgid "Rotação livre."
+msgstr "Rotation free."
+
+msgid "Mire num objeto próximo para se transformar."
+msgstr "Aim at a nearby object to transform."
+
+msgid "Sem espaço para virar isso aqui."
+msgstr "Not enough room to become that here."
+
+msgid "Sem espaço para voltar à forma de alien."
+msgstr "Not enough room to turn back into an alien."
+
+msgid "Errou! Isso era só um objeto."
+msgstr "Missed! That was just an object."
+
+msgid "Você foi pego! Agora você ajuda a procurar (pode pegar em %d s)."
+msgstr "You were caught! Now you help the seeker (you can catch in %d s)."
+
+msgid "Ninguém votou: o mapa sorteado foi %s."
+msgstr "Nobody voted: the randomly picked map is %s."
+
+msgid "Empate na votação! O mapa sorteado foi %s."
+msgstr "The vote was a tie! The randomly picked map is %s."
+
+msgid "Mapa escolhido na votação: %s (%d de %d votos)."
+msgstr "Map chosen by vote: %s (%d of %d votes)."
+
+msgid "%s pegou %s! Agora %s também procura."
+msgstr "%s caught %s! Now %s is hunting too."
+
+msgid "%s pegou %s!"
+msgstr "%s caught %s!"
+
+msgid "Lá vou eu! %s começou a procurar."
+msgstr "Ready or not! %s started hunting."
+
+msgid "O procurador saiu. Rodada anulada."
+msgstr "The seeker left. Round cancelled."
+
+msgid "Infecção completa! %s e os ajudantes pegaram todo mundo."
+msgstr "Full infection! %s and the helpers caught everyone."
+
+msgid "%s pegou todo mundo!"
+msgstr "%s caught everyone!"
+
+msgid "Os escondidos venceram! Sobreviveram: %s"
+msgstr "The hiders won! Survivors: %s"
+
+msgid "objeto"
+msgstr "object"
+
+msgid "DEPURAÇÃO  [F1] Papel  [F2] Câmera livre  [F3] Colisões  [F4] Pular fase  [F5] Próximo mapa  [F6] Pausar tempo"
+msgstr "DEBUG  [F1] Role  [F2] Free camera  [F3] Collisions  [F4] Skip phase  [F5] Next map  [F6] Pause timer"
+
+msgid "Câmera livre: WASD + mouse, [Espaço] sobe, [Shift] desce."
+msgstr "Free camera: WASD + mouse, [Space] up, [Shift] down."
+
+msgid "Câmera livre desligada."
+msgstr "Free camera off."
+
+msgid "Colisões visíveis: azul = mundo, laranja = objetos, rosa = jogadores."
+msgstr "Collisions visible: blue = world, orange = objects, pink = players."
+
+msgid "Colisões escondidas."
+msgstr "Collisions hidden."
+
+msgid "[depuração] %s pulou a fase."
+msgstr "[debug] %s skipped the phase."
+
+msgid "[depuração] %s trocou o mapa para %s."
+msgstr "[debug] %s changed the map to %s."
+
+msgid "[depuração] %s pausou o cronômetro."
+msgstr "[debug] %s paused the timer."
+
+msgid "[depuração] %s retomou o cronômetro."
+msgstr "[debug] %s resumed the timer."
+
+msgid "[depuração] %s agora é procurador."
+msgstr "[debug] %s is now the seeker."
+
+msgid "[depuração] %s agora é escondido."
+msgstr "[debug] %s is now a hider."
+
+msgid "Abóbora"
+msgstr "Pumpkin"
+
+msgid "Arbusto"
+msgstr "Bush"
+
+msgid "Balde"
+msgstr "Bucket"
+
+msgid "Bola"
+msgstr "Ball"
+
+msgid "Bola de golfe"
+msgstr "Golf ball"
+
+msgid "Bola grande"
+msgstr "Big ball"
+
+msgid "Bolinha"
+msgstr "Ball pit ball"
+
+msgid "Garrafa"
+msgstr "Bottle"
+
+msgid "Lápide"
+msgstr "Tombstone"
+
+msgid "Lata"
+msgstr "Can"
+
+msgid "Patinho"
+msgstr "Duck"
+
+msgid "Caixa pequena"
+msgstr "Small box"
+
+msgid "Abajur"
+msgstr "Table lamp"
+
+msgid "Aparador"
+msgstr "Console table"
+
+msgid "Armário"
+msgstr "Cupboard"
+
+msgid "Armário coberto"
+msgstr "Covered wardrobe"
+
+msgid "Anão de jardim"
+msgstr "Garden gnome"
+
+msgid "Balança"
+msgstr "Bathroom scale"
+
+msgid "Bancada"
+msgstr "Workbench"
+
+msgid "Banheira"
+msgstr "Bathtub"
+
+msgid "Banqueta"
+msgstr "Stool"
+
+msgid "Barril"
+msgstr "Barrel"
+
+msgid "Baú"
+msgstr "Chest"
+
+msgid "Berço"
+msgstr "Crib"
+
+msgid "Bicicleta"
+msgstr "Bicycle"
+
+msgid "Bicicleta ergométrica"
+msgstr "Exercise bike"
+
+msgid "Buffet"
+msgstr "Sideboard"
+
+msgid "Cabideiro"
+msgstr "Coat rack"
+
+msgid "Cadeira"
+msgstr "Chair"
+
+msgid "Cadeira de balanço"
+msgstr "Rocking chair"
+
+msgid "Cadeira de escritório"
+msgstr "Office chair"
+
+msgid "Cadeira plástica"
+msgstr "Plastic chair"
+
+msgid "Caixa de enfeites"
+msgstr "Christmas decorations box"
+
+msgid "Caixa de papelão"
+msgstr "Cardboard box"
+
+msgid "Caldeira"
+msgstr "Boiler"
+
+msgid "Cama de casal"
+msgstr "Double bed"
+
+msgid "Cama de solteiro"
+msgstr "Single bed"
+
+msgid "Carrinho de mão"
+msgstr "Wheelbarrow"
+
+msgid "Carro"
+msgstr "Car"
+
+msgid "Casinha de cachorro"
+msgstr "Doghouse"
+
+msgid "Cavalinho de balanço"
+msgstr "Rocking horse"
+
+msgid "Cesto de fraldas"
+msgstr "Diaper basket"
+
+msgid "Cesto de roupa"
+msgstr "Laundry basket"
+
+msgid "Churrasqueira"
+msgstr "Barbecue grill"
+
+msgid "Cômoda"
+msgstr "Dresser"
+
+msgid "Cortador de grama"
+msgstr "Lawn mower"
+
+msgid "Criado-mudo"
+msgstr "Nightstand"
+
+msgid "Cristaleira"
+msgstr "China cabinet"
+
+msgid "Cubo de brinquedo"
+msgstr "Toy block"
+
+msgid "Escada de abrir"
+msgstr "Stepladder"
+
+msgid "Escrivaninha"
+msgstr "Desk"
+
+msgid "Estante"
+msgstr "Bookcase"
+
+msgid "Estante baixa"
+msgstr "Low bookcase"
+
+msgid "Fogão"
+msgstr "Stove"
+
+msgid "Freezer"
+msgstr "Chest freezer"
+
+msgid "Galão de água"
+msgstr "Water jug"
+
+msgid "Geladeira"
+msgstr "Fridge"
+
+msgid "Guarda-roupa"
+msgstr "Wardrobe"
+
+msgid "Guarda-sol"
+msgstr "Patio umbrella"
+
+msgid "Lata de tinta"
+msgstr "Paint can"
+
+msgid "Lixeira"
+msgstr "Trash can"
+
+msgid "Luminária de chão"
+msgstr "Floor lamp"
+
+msgid "Mala"
+msgstr "Suitcase"
+
+msgid "Manequim"
+msgstr "Mannequin"
+
+msgid "Máquina de lavar"
+msgstr "Washing machine"
+
+msgid "Mesa de centro"
+msgstr "Coffee table"
+
+msgid "Mesa de jantar"
+msgstr "Dining table"
+
+msgid "Mesa de jardim"
+msgstr "Garden table"
+
+msgid "Mesa de sinuca"
+msgstr "Pool table"
+
+msgid "Mesinha"
+msgstr "Small table"
+
+msgid "Mesinha lateral"
+msgstr "Side table"
+
+msgid "Micro-ondas"
+msgstr "Microwave"
+
+msgid "Móvel coberto"
+msgstr "Covered furniture"
+
+msgid "Panela"
+msgstr "Cooking pot"
+
+msgid "Patinho de borracha"
+msgstr "Rubber duck"
+
+msgid "Penteadeira"
+msgstr "Vanity"
+
+msgid "Pia com gabinete"
+msgstr "Bathroom sink"
+
+msgid "Pia da cozinha"
+msgstr "Kitchen sink"
+
+msgid "Planta alta"
+msgstr "Tall plant"
+
+msgid "Pneu"
+msgstr "Tire"
+
+msgid "Poltrona"
+msgstr "Armchair"
+
+msgid "Pote de conserva"
+msgstr "Preserve jar"
+
+msgid "Prateleira de metal"
+msgstr "Metal shelf"
+
+msgid "Pufe"
+msgstr "Pouf"
+
+msgid "Quadro coberto"
+msgstr "Covered painting"
+
+msgid "Rack com TV"
+msgstr "TV stand"
+
+msgid "Rolo de tapete"
+msgstr "Rolled rug"
+
+msgid "Sapateira"
+msgstr "Shoe rack"
+
+msgid "Secadora"
+msgstr "Dryer"
+
+msgid "Skate"
+msgstr "Skateboard"
+
+msgid "Sofá de 2 lugares"
+msgstr "Loveseat"
+
+msgid "Sofá de 3 lugares"
+msgstr "Sofa"
+
+msgid "Tanque"
+msgstr "Laundry sink"
+
+msgid "Tábua de passar"
+msgstr "Ironing board"
+
+msgid "Trocador"
+msgstr "Changing table"
+
+msgid "Ursinho"
+msgstr "Little teddy bear"
+
+msgid "Urso de pelúcia"
+msgstr "Teddy bear"
+
+msgid "Vaso de planta"
+msgstr "Potted plant"
+
+msgid "Vaso sanitário"
+msgstr "Toilet"
+
+msgid "Arquivo de aço"
+msgstr "Filing cabinet"
+
+msgid "Armário de ferramentas"
+msgstr "Tool cabinet"
+
+msgid "Armário do vestiário"
+msgstr "Locker"
+
+msgid "Banco do refeitório"
+msgstr "Cafeteria bench"
+
+msgid "Bebedouro"
+msgstr "Water cooler"
+
+msgid "Bobina de cabo"
+msgstr "Cable spool"
+
+msgid "Bombona"
+msgstr "Chemical drum"
+
+msgid "Caixa de ferramentas"
+msgstr "Toolbox"
+
+msgid "Caixa de isopor"
+msgstr "Cooler box"
+
+msgid "Caixa de madeira"
+msgstr "Wooden crate"
+
+msgid "Caixote"
+msgstr "Small crate"
+
+msgid "Capacete"
+msgstr "Hard hat"
+
+msgid "Carrinho de carga"
+msgstr "Hand truck"
+
+msgid "Cavalete"
+msgstr "Sawhorse"
+
+msgid "Cilindro de gás"
+msgstr "Gas cylinder"
+
+msgid "Compressor"
+msgstr "Air compressor"
+
+msgid "Cone"
+msgstr "Traffic cone"
+
+msgid "Esteira"
+msgstr "Conveyor belt"
+
+msgid "Extintor"
+msgstr "Fire extinguisher"
+
+msgid "Gerador"
+msgstr "Generator"
+
+msgid "Impressora"
+msgstr "Printer"
+
+msgid "Lixeira industrial"
+msgstr "Industrial bin"
+
+msgid "Máquina de café"
+msgstr "Coffee machine"
+
+msgid "Máquina de venda"
+msgstr "Vending machine"
+
+msgid "Máquina industrial"
+msgstr "Industrial machine"
+
+msgid "Mesa de escritório"
+msgstr "Office desk"
+
+msgid "Mesa do refeitório"
+msgstr "Cafeteria table"
+
+msgid "Paleteira"
+msgstr "Pallet jack"
+
+msgid "Pallet"
+msgstr "Pallet"
+
+msgid "Pallet com caixas"
+msgstr "Pallet with boxes"
+
+msgid "Sacos de cimento"
+msgstr "Cement bags"
+
+msgid "Tambor"
+msgstr "Drum"
+
+msgid "Tambor deitado"
+msgstr "Drum on its side"
+
+msgid "Tanque industrial"
+msgstr "Industrial tank"
+
+msgid "Balde de pipoca gigante"
+msgstr "Giant popcorn bucket"
+
+msgid "Banco de praça"
+msgstr "Park bench"
+
+msgid "Bateria"
+msgstr "Drum kit"
+
+msgid "Caixa de som"
+msgstr "Speaker"
+
+msgid "Carrinho da montanha-russa"
+msgstr "Roller coaster car"
+
+msgid "Carrinho de algodão-doce"
+msgstr "Cotton candy cart"
+
+msgid "Carrinho de bate-bate"
+msgstr "Bumper car"
+
+msgid "Carrinho de bebê"
+msgstr "Stroller"
+
+msgid "Carrinho de pipoca"
+msgstr "Popcorn cart"
+
+msgid "Carrinho de sorvete"
+msgstr "Ice cream cart"
+
+msgid "Carrinho do trem fantasma"
+msgstr "Ghost train car"
+
+msgid "Lixeira do parque"
+msgstr "Park trash can"
+
+msgid "Máquina de fliperama"
+msgstr "Arcade machine"
+
+msgid "Máquina de pegar bicho"
+msgstr "Claw machine"
+
+msgid "Medidor de altura"
+msgstr "Height sign"
+
+msgid "Mesa com guarda-sol"
+msgstr "Umbrella table"
+
+msgid "Mesa de air hockey"
+msgstr "Air hockey table"
+
+msgid "Mesa de piquenique"
+msgstr "Picnic table"
+
+msgid "Pedalinho de cisne"
+msgstr "Swan pedal boat"
+
+msgid "Poste de fila"
+msgstr "Queue post"
+
+msgid "Totem com mapa"
+msgstr "Map sign"
+
+msgid "Urso gigante"
+msgstr "Giant teddy bear"
+
+msgid "Xícara maluca"
+msgstr "Teacup ride"

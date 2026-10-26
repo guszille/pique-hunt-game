@@ -79,7 +79,7 @@ func _toggle_free_camera() -> void:
 		if current:
 			GameState.game.spectator_camera.global_transform = current.global_transform
 	GameState.notified.emit(
-		"Câmera livre: WASD + mouse, [Espaço] sobe, [Shift] desce." if free_camera else "Câmera livre desligada.",
+		tr("Câmera livre: WASD + mouse, [Espaço] sobe, [Shift] desce.") if free_camera else tr("Câmera livre desligada."),
 		GameState.COLOR_INFO)
 
 
@@ -91,7 +91,7 @@ func _toggle_collisions() -> void:
 			node.queue_free()
 		_csg_overlays.clear()
 	GameState.notified.emit(
-		"Colisões visíveis: azul = mundo, laranja = objetos, rosa = jogadores." if show_collisions else "Colisões escondidas.",
+		tr("Colisões visíveis: azul = mundo, laranja = objetos, rosa = jogadores.") if show_collisions else tr("Colisões escondidas."),
 		GameState.COLOR_INFO)
 
 

@@ -32,6 +32,7 @@ var _aim_label: Label
 
 
 func _ready() -> void:
+	Language.changed.connect(_rebuild_scoreboard)
 	GameState.notified.connect(_on_notified)
 	GameState.phase_changed.connect(_on_phase_changed)
 	Network.players_changed.connect(_rebuild_scoreboard)
@@ -61,10 +62,10 @@ func _process(_delta: float) -> void:
 	var phase := GameState.phase
 	var seconds := ceili(GameState.time_left)
 
-	phase_label.text = "%s  %d:%02d%s" % [PHASE_NAMES.get(phase, ""), seconds / 60, seconds % 60,
-		"  (pausado)" if GameState.timer_paused else ""]
+	phase_label.text = "%s  %d:%02d%s" % [tr(PHASE_NAMES.get(phase, "")), seconds / 60, seconds % 60,
+		tr("  (pausado)") if GameState.timer_paused else ""]
 	var hiders := GameState.count_hiders()
-	info_label.text = "Escondidos livres: %d / %d" % [hiders.x, hiders.y] if hiders.y > 0 else ""
+	info_label.text = tr("Escondidos livres: %d / %d") % [hiders.x, hiders.y] if hiders.y > 0 else ""
 
 	_update_role(player)
 	_update_big_label(player)
@@ -73,7 +74,7 @@ func _process(_delta: float) -> void:
 	var is_blind := player != null and player.peer_id == GameState.seeker_id and phase == GameState.Phase.PREP
 	blind.visible = is_blind
 	if is_blind:
-		blind_label.text = "Você é o procurador!\nContando até os outros se esconderem...\n\n%d" % seconds
+		blind_label.text = tr("Você é o procurador!\nContando até os outros se esconderem...") + "\n\n%d" % seconds
 
 	crosshair.visible = player != null and not player.caught and not DebugTools.free_camera
 	if crosshair.visible:
@@ -81,7 +82,7 @@ func _process(_delta: float) -> void:
 	var aimed: Prop = player.get_aimed_prop() if crosshair.visible else null
 	_aim_label.visible = aimed != null
 	if aimed:
-		_aim_label.text = "[E] Virar %s" % aimed.get_label()
+		_aim_label.text = tr("[E] Virar %s") % aimed.get_label()
 
 	scoreboard.visible = Input.is_action_pressed("scoreboard") or phase == GameState.Phase.END
 
@@ -92,48 +93,48 @@ func _process(_delta: float) -> void:
 
 func _update_role(player: Player) -> void:
 	if DebugTools.free_camera:
-		role_label.text = "CÂMERA LIVRE"
+		role_label.text = tr("CÂMERA LIVRE")
 		role_label.modulate = Color("f1c40f")
-		hints_label.text = "WASD + mouse para voar  |  [Espaço] sobe  |  [Shift] desce  |  [F2] voltar ao jogador"
+		hints_label.text = tr("WASD + mouse para voar  |  [Espaço] sobe  |  [Shift] desce  |  [F2] voltar ao jogador")
 		return
 	if player == null:
-		role_label.text = "ASSISTINDO"
+		role_label.text = tr("ASSISTINDO")
 		role_label.modulate = Color("bdc3c7")
-		hints_label.text = "Você entra na próxima rodada.  WASD + mouse para voar  |  [Tab] Placar"
+		hints_label.text = tr("Você entra na próxima rodada.  WASD + mouse para voar  |  [Tab] Placar")
 		return
 	if player.role == GameState.Role.SEEKER:
-		var title := "AJUDANTE DO PROCURADOR" if player.infected else "PROCURADOR"
-		role_label.text = title + ("  (lento!)" if player.is_slowed() else "")
+		var title := tr("AJUDANTE DO PROCURADOR") if player.infected else tr("PROCURADOR")
+		role_label.text = title + (tr("  (lento!)") if player.is_slowed() else "")
 		role_label.modulate = Color("8bc34a") if player.infected else Color("e74c3c")
-		hints_label.text = "[Clique] Pegar (de perto)  |  Errar num objeto deixa você lento  |  [Tab] Placar"
+		hints_label.text = tr("[Clique] Pegar (de perto)  |  Errar num objeto deixa você lento  |  [Tab] Placar")
 	elif player.caught:
-		role_label.text = "PEGO!"
+		role_label.text = tr("PEGO!")
 		role_label.modulate = Color("95a5a6")
-		hints_label.text = "Você foi pego. Voe e assista: WASD, [Espaço] sobe, [Shift] desce  |  [Tab] Placar"
+		hints_label.text = tr("Você foi pego. Voe e assista: WASD, [Espaço] sobe, [Shift] desce  |  [Tab] Placar")
 	elif player.is_disguised():
-		role_label.text = "ESCONDIDO (disfarçado)"
+		role_label.text = tr("ESCONDIDO (disfarçado)")
 		role_label.modulate = Color("2ecc71")
-		hints_label.text = "[E] Trocar de objeto  |  [Q] Voltar a ser alien  |  [R] Rotação: %s  |  [Shift] Congelar" \
-			% ("TRAVADA" if player.rotation_locked else "livre")
+		hints_label.text = tr("[E] Trocar de objeto  |  [Q] Voltar a ser alien  |  [R] Rotação: %s  |  [Shift] Congelar") \
+			% (tr("TRAVADA") if player.rotation_locked else tr("livre"))
 	else:
-		role_label.text = "ESCONDIDO"
+		role_label.text = tr("ESCONDIDO")
 		role_label.modulate = Color("2ecc71")
-		hints_label.text = "Mire num objeto e aperte [E] para virar ele  |  [Espaço] Pular  |  [Tab] Placar"
+		hints_label.text = tr("Mire num objeto e aperte [E] para virar ele  |  [Espaço] Pular  |  [Tab] Placar")
 
 
 func _update_big_label(player: Player) -> void:
 	match GameState.phase:
 		GameState.Phase.LOADING:
-			big_label.text = "Esperando todos carregarem..."
+			big_label.text = tr("Esperando todos carregarem...")
 		GameState.Phase.DRAW:
 			big_label.text = _roulette_text()
 		GameState.Phase.PREP:
 			if player and player.role == GameState.Role.HIDER and GameState.time_left > GameState.settings.prep_time - 4:
-				big_label.text = "Corra e se esconda!"
+				big_label.text = tr("Corra e se esconda!")
 			else:
 				big_label.text = ""
 		GameState.Phase.END:
-			big_label.text = GameState.result_text
+			big_label.text = Language.format(GameState.result_message)
 		_:
 			big_label.text = ""
 
@@ -145,10 +146,10 @@ func _roulette_text() -> String:
 	var elapsed := GameState.DRAW_TIME - GameState.time_left
 	if GameState.time_left < 1.3:
 		var mode: Dictionary = GameState.MODES[GameState.settings.get("mode", 0)]
-		return "%s vai procurar!\nModo %s: %s" % [Network.get_player_name(GameState.seeker_id), mode.name, mode.description]
+		return tr("%s vai procurar!\nModo %s: %s") % [Network.get_player_name(GameState.seeker_id), tr(mode.name), tr(mode.description)]
 	# A roleta gira rápido e vai desacelerando.
 	var index := int(pow(elapsed, 0.6) * 9.0) % names.size()
-	return "Sorteando quem procura...\n%s" % names[index]
+	return tr("Sorteando quem procura...") + "\n" + names[index]
 
 
 func _on_phase_changed(phase: GameState.Phase) -> void:
@@ -186,11 +187,12 @@ func _rebuild_scoreboard() -> void:
 		var info: Dictionary = Network.players[id]
 		var row := HBoxContainer.new()
 		var name_label := Label.new()
-		name_label.text = info.name + ("  (você)" if id == multiplayer.get_unique_id() else "")
+		name_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		name_label.text = info.name + (tr("  (você)") if id == multiplayer.get_unique_id() else "")
 		name_label.modulate = info.color.lightened(0.3)
 		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var score_label := Label.new()
-		score_label.text = "%d pts" % info.score
+		score_label.text = tr("%d pts") % info.score
 		row.add_child(name_label)
 		row.add_child(score_label)
 		score_list.add_child(row)
@@ -215,7 +217,7 @@ func _add_aim_label() -> void:
 
 func _add_debug_label() -> void:
 	var label := Label.new()
-	label.text = DebugTools.HELP
+	label.text = tr(DebugTools.HELP)
 	label.modulate = Color(1, 0.85, 0.3, 0.85)
 	label.add_theme_font_size_override("font_size", 14)
 	label.add_theme_constant_override("outline_size", 5)

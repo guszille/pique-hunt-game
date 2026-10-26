@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/main_menu.gd" id="1_menu"]
+[ext_resource type="Script" path="res://scenes/ui/language_option.gd" id="2_language"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_panel"]
 content_margin_left = 32.0
@@ -103,6 +104,19 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 text = "Sair"
+
+[node name="LanguageRow" type="HBoxContainer" parent="Center/Panel/VBox"]
+layout_mode = 2
+
+[node name="LanguageLabel" type="Label" parent="Center/Panel/VBox/LanguageRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Idioma"
+
+[node name="LanguageOption" type="OptionButton" parent="Center/Panel/VBox/LanguageRow"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+script = ExtResource("2_language")
 
 [node name="StatusLabel" type="Label" parent="Center/Panel/VBox"]
 unique_name_in_owner = true

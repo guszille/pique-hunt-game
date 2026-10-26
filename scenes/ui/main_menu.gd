@@ -16,7 +16,8 @@ func _ready() -> void:
 	Network.connection_succeeded.connect(_on_connected)
 	Network.connection_failed.connect(_on_connection_failed)
 	Network.connection_rejected.connect(_on_connection_rejected)
-	%VersionLabel.text = "versão %s%s" % [Network.version, "  ·  depuração: hospede e inicie sozinho para testar" if DebugTools.enabled else ""]
+	Language.changed.connect(_update_version_label)
+	_update_version_label()
 	if Network.local_name != "Jogador":
 		name_edit.text = Network.local_name
 	status_label.text = GameState.menu_message
@@ -24,10 +25,15 @@ func _ready() -> void:
 	_apply_cmdline.call_deferred()
 
 
+func _update_version_label() -> void:
+	%VersionLabel.text = tr("versão %s") % Network.version \
+		+ (tr("  ·  depuração: hospede e inicie sozinho para testar") if DebugTools.enabled else "")
+
+
 func _on_host_pressed() -> void:
 	var err := Network.host_game(_player_name())
 	if err != OK:
-		status_label.text = "Não foi possível hospedar na porta %d (erro %d)." % [Network.PORT, err]
+		status_label.text = tr("Não foi possível hospedar na porta %d (erro %d).") % [Network.PORT, err]
 		return
 	get_tree().change_scene_to_file(GameState.LOBBY_SCENE)
 
@@ -38,9 +44,9 @@ func _on_join_pressed() -> void:
 		address = "127.0.0.1"
 	var err := Network.join_game(address, _player_name())
 	if err != OK:
-		status_label.text = "Endereço inválido (erro %d)." % err
+		status_label.text = tr("Endereço inválido (erro %d).") % err
 		return
-	status_label.text = "Conectando a %s..." % address
+	status_label.text = tr("Conectando a %s...") % address
 	_set_buttons_enabled(false)
 
 
@@ -49,7 +55,7 @@ func _on_connected() -> void:
 
 
 func _on_connection_failed() -> void:
-	status_label.text = "Não foi possível conectar. Confira o IP e se o host está aberto."
+	status_label.text = tr("Não foi possível conectar. Confira o IP e se o host está aberto.")
 	_set_buttons_enabled(true)
 
 
@@ -60,7 +66,7 @@ func _on_connection_rejected(message: String) -> void:
 
 func _player_name() -> String:
 	var player_name := name_edit.text.strip_edges()
-	return player_name if player_name != "" else "Jogador%d" % (randi() % 1000)
+	return player_name if player_name != "" else tr("Jogador") + str(randi() % 1000)
 
 
 func _set_buttons_enabled(enabled: bool) -> void:

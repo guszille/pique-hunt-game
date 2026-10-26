@@ -28,6 +28,13 @@ início.
 O resultado aparece na tela no começo da partida, e a votação recomeça sempre
 que o grupo volta ao lobby.
 
+### Idioma
+
+O jogo está em **português** e **inglês**. Escolha o idioma no menu principal ou no
+menu de pausa (Esc); a escolha fica salva. Na primeira vez, o jogo usa português se
+o sistema estiver em português e inglês nos outros casos. Cada jogador vê a partida
+no próprio idioma, inclusive os avisos do host.
+
 Cada rodada passa por: **Sorteio → Preparação** (o procurador fica preso e com a tela
 escura) **→ Caçada → Fim** (placar). Depois começa uma nova rodada com outro procurador.
 
@@ -75,6 +82,7 @@ assobiam de tempos em tempos.
 ## Estrutura
 
 ```
+autoload/language.gd     idioma escolhido e tradução das mensagens do host
 autoload/controls.gd     ações de input
 autoload/network.gd      ENet (host/cliente) e lista de jogadores
 autoload/game_state.gd   fases da rodada, sorteio, capturas, disfarces, pontos (servidor)
@@ -92,8 +100,25 @@ scenes/maps/factory.tscn mapa "Fábrica", gerado por tools/build_factory.gd
 scenes/maps/park.tscn    mapa "Parque", gerado por tools/build_park.gd
 tools/map_builder.gd     base dos geradores de mapa (paredes, pisos, objetos, aviso de sobreposição)
 tools/export.sh          exporta para Linux e Windows (build/)
+tools/check_translations.py  confere se todos os textos têm tradução em locale/en.po
+locale/en.po             traduções para o inglês
 scenes/ui/               menu, lobby e HUD
 ```
+
+### Traduções
+
+Os textos são escritos em português no código (`tr("...")`) e nas cenas, e o
+próprio texto em português é a chave da tradução. As versões em inglês ficam em
+`locale/en.po`, que pode ser editado à mão ou no Poedit.
+
+- Avisos que o host manda para todos (capturas, resultado, votação) viajam como
+  `[chave, args...]` e cada jogador traduz com `Language.format()`. Argumentos
+  `StringName` (como nomes de mapa) também são traduzidos; `String` não (nomes de
+  jogadores).
+- Os nomes dos objetos do catálogo e de `PRIMITIVE_LABELS` também são chaves.
+- Depois de criar ou mudar textos, rode `python3 tools/check_translations.py`: ele
+  lista o que falta traduzir e o que sobrou no `.po`.
+- Para testar, `-- --lang=en` (ou `--lang=pt_BR`) força o idioma sem salvar.
 
 O mapa é um `MapBase` com os nós `HiderSpawns`, `SeekerCage` e `SeekerRelease`. Os
 objetos são instâncias de `prop.tscn`:
