@@ -43,6 +43,8 @@ func _init() -> void:
 	map_name = "Casa"
 	root_name = "House"
 	wall_height = ROOM_HEIGHT
+	# Blocos de paredes separados por andar (os cortes caem nas lajes).
+	chunk_levels = [GROUND - 0.1, UPPER - 0.1, ATTIC - 0.1]
 
 
 func _build() -> void:

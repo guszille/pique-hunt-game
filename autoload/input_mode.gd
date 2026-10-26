@@ -26,7 +26,7 @@ const BUTTON_NAMES := {
 const HANDHELD_UI_SCALE := 1.35
 
 var touch := false
-## Celular de verdade ou simulado com `--mobile`: interface maior, sem botão "Sair".
+## Celular (app ou navegador) ou simulado com `--mobile`: interface maior, sem botão "Sair".
 var handheld := false
 
 var _forced := false
@@ -34,7 +34,7 @@ var _forced := false
 
 func _ready() -> void:
 	_forced = "--mobile" in OS.get_cmdline_user_args()
-	handheld = OS.has_feature("mobile") or _forced
+	handheld = OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios") or _forced
 	touch = handheld
 	if _forced:
 		Input.emulate_touch_from_mouse = true

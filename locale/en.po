@@ -890,3 +890,18 @@ msgstr "Rotation: %s  |  Hold %s to stay still"
 
 msgid "Mire num objeto e toque em %s para virar ele."
 msgstr "Aim at an object and tap %s to become it."
+
+msgid "A partida está cheia (máximo de %d jogadores)."
+msgstr "The game is full (up to %d players)."
+
+msgid "Versão para navegador indisponível nesta build."
+msgstr "Browser version not available in this build."
+
+msgid "Celulares e navegadores: abram %s"
+msgstr "Phones and browsers: open %s"
+
+msgid "Tela cheia"
+msgstr "Fullscreen"
+
+msgid "Dica: para jogar em tela cheia, toque em Compartilhar e depois em Adicionar à Tela de Início."
+msgstr "Tip: for fullscreen, tap Share and then Add to Home Screen."

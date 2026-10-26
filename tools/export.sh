@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Exporta o jogo para Linux, Windows e Android e gera em build/ um .zip de
+# Exporta o jogo para Web, Linux, Windows e Android e gera em build/ um .zip de
 # cada versão de PC e o .apk do Android.
+# A versão web vai embutida (web/site.zip) nas builds de PC e Android: quem
+# hospeda a serve para os navegadores da rede (autoload/web_host.gd).
 # Uso: tools/export.sh [caminho/do/godot]
 # Requer os modelos de exportação do Godot 4.7.2 instalados
 # (Editor > Gerenciar modelos de exportação) e, para o Android, o JDK 17 e o
@@ -30,8 +32,14 @@ else
 	echo "APK assinado com a chave de release ($GODOT_ANDROID_KEYSTORE_RELEASE_PATH)."
 fi
 
-mkdir -p build/linux build/windows build/android
+mkdir -p build/linux build/windows build/android build/web
 touch build/.gdignore
+
+rm -rf build/web/*
+"$GODOT" --headless --path . --export-release "Web" build/web/index.html
+[[ -s build/web/index.wasm ]] || { echo "Falha ao exportar a versão web." >&2; exit 1; }
+rm -f web/site.zip
+(cd build/web && zip -q -r ../../web/site.zip .)
 
 "$GODOT" --headless --path . --export-release "Linux" build/linux/PiqueProp.x86_64
 "$GODOT" --headless --path . --export-release "Windows" build/windows/PiqueProp.exe

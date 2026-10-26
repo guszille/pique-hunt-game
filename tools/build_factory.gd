@@ -38,6 +38,8 @@ func _init() -> void:
 	map_name = "Fábrica"
 	root_name = "Factory"
 	wall_height = 7.0
+	# Blocos do subsolo separados dos do térreo (o corte cai na laje).
+	chunk_levels = [-0.1]
 	rng.seed = 2026
 
 
@@ -165,7 +167,9 @@ func _add_annexes() -> void:
 	wall_z(-27, -11, 11, [door(0, MAIN_DOOR, 2.4), [-6, 1.6, 1.0, 2.2], [6, 1.6, 1.0, 2.2]], ANNEX_WALL, h)
 	wall_x(-1.5, -27, -15, [door(-24.6)], ANNEX_WALL, 3.0)
 	wall_x(1.5, -27, -15, [door(-21)], ANNEX_WALL, 3.0)
-	wall_box(Vector3(-21, h - 0.1, 0), Vector3(12.2, 0.2, 22.2), Color("9e9e9e"))
+	# Laje do anexo até o meio da parede do galpão: com a borda na face da parede, as
+	# duas faces coincidem e aparece uma faixa da cor da laje no galpão.
+	wall_box(Vector3(-21.05, h - 0.1, 0), Vector3(12.1, 0.2, 22.2), Color("9e9e9e"))
 	var hole := BASEMENT_STAIR_HOLE
 	var rail := WALL_THICKNESS * 0.5
 	wall_x(hole.end.y + rail, hole.position.x - rail, hole.end.x, [], ANNEX_WALL, 1.0)

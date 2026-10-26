@@ -1,3 +1,5 @@
 .godot/
 /android/
 /build/
+# Cópia da exportação web embutida no PC e no Android (gerada por tools/export.sh).
+/web/site.zip

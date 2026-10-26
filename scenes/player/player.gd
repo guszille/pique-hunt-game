@@ -404,6 +404,9 @@ func _pop() -> void:
 
 
 func _play(stream: AudioStream) -> void:
+	if WebAudio.enabled:
+		WebAudio.play(stream, global_position)
+		return
 	audio.stream = stream
 	audio.play()
 

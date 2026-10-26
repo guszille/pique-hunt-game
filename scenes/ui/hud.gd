@@ -17,6 +17,8 @@ var _aim_label: Label
 var _debug_label: Label
 ## Contador de FPS (só em builds de depuração, para medir no celular).
 var _fps_label: Label
+## O mouse estava capturado no último quadro (navegador: Esc solta o ponteiro).
+var _had_capture := false
 
 @onready var phase_label: Label = %PhaseLabel
 @onready var info_label: Label = %InfoLabel
@@ -52,6 +54,13 @@ func _ready() -> void:
 		_add_fps_label()
 	InputMode.changed.connect(_apply_input_mode)
 	_apply_input_mode()
+	if WebPage.can_fullscreen():
+		var fullscreen := Button.new()
+		fullscreen.text = tr("Tela cheia")
+		fullscreen.custom_minimum_size = Vector2(0, 40)
+		fullscreen.pressed.connect(WebPage.toggle_fullscreen)
+		%QuitButton.get_parent().add_child(fullscreen)
+		%QuitButton.get_parent().move_child(fullscreen, %QuitButton.get_index())
 
 
 func _notification(what: int) -> void:
@@ -98,6 +107,7 @@ func _process(_delta: float) -> void:
 		_aim_label.text = (tr("Virar %s") if InputMode.touch else tr("[E] Virar %s")) % aimed.get_label()
 
 	touch_controls.update_context(player, pause_menu.visible)
+	_check_pointer_lock()
 	if _fps_label:
 		_fps_label.text = "%d FPS" % Engine.get_frames_per_second()
 
@@ -296,6 +306,17 @@ func _apply_input_mode() -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
+## No navegador, o Esc é do próprio navegador: ele solta o ponteiro e a tecla não
+## chega ao jogo. Quando o ponteiro é solto no meio da partida, abre a pausa.
+func _check_pointer_lock() -> void:
+	if not WebPage.is_web() or InputMode.touch:
+		return
+	var captured := Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+	if _had_capture and not captured and not pause_menu.visible:
+		_set_paused(true)
+	_had_capture = captured
+
+
 func _set_paused(paused: bool) -> void:
 	pause_menu.visible = paused
 	if not InputMode.touch:
@@ -303,5 +324,8 @@ func _set_paused(paused: bool) -> void:
 
 
 func _play(stream: AudioStream) -> void:
+	if WebAudio.enabled:
+		WebAudio.play(stream)
+		return
 	ui_audio.stream = stream
 	ui_audio.play()

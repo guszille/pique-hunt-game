@@ -12,6 +12,21 @@ const MAIN_DOOR := 1.4
 const DOOR_TOP := 2.3
 ## Passagens mais estreitas que isso geram aviso no relatório.
 const MIN_PASSAGE := 1.0
+## Lado (m) dos blocos em que paredes, pisos e forros são assados. O Compatibility
+## (web) e o Mobile aplicam no máximo 8 luzes por malha: uma malha única para todas
+## as paredes perde quase todas as luzes, um bloco pequeno só pega as da vizinhança.
+const CHUNK_SIZE := 8.0
+## Deslocamento da grade dos blocos, para os cortes não caírem na face de uma parede.
+const CHUNK_OFFSET := 0.05
+## Luzes por malha que o Mobile e o Compatibility aplicam.
+const MAX_LIGHTS_PER_MESH := 8
+## Grupos cujas caixas CSG (pisos e forros) entram nos blocos junto com as paredes.
+const BAKED_GROUPS := ["Floors", "Ceilings"]
+## Pisos com um lado maior que isso (gramados) ficam fora dos blocos.
+const MAX_BAKED_FLOOR := 40.0
+## Primeira camada de render dos andares (com `chunk_levels`): os blocos de cada
+## andar ficam numa camada e as luzes só iluminam os blocos do próprio andar.
+const STOREY_FIRST_LAYER := 11
 
 const BOX := PropBuilder.Shape.BOX
 const CYLINDER := PropBuilder.Shape.CYLINDER
@@ -41,10 +56,14 @@ var out_path := ""
 var map_name := "Mapa"
 var root_name := "Map"
 var wall_height := 3.0
+## Alturas em que os blocos também são cortados (nas lajes, entre os andares). Cada
+## andar fica com sua camada de render, e as luzes não atravessam as lajes.
+var chunk_levels: Array[float] = []
 
 var map_root: Node3D
 var props: Node3D
 var decor: Node3D
+## Paredes enquanto o mapa é montado; no fim viram blocos assados (`_bake_structure`).
 var walls: CSGCombiner3D
 ## Rampas invisíveis das escadas e degraus só visuais (criados sob demanda).
 var ramps: Node3D
@@ -54,13 +73,21 @@ var _name_counts := {}
 var _bounds: Array[Dictionary] = []
 ## Corredores das passagens (caixa livre de cada porta), conferidos no relatório.
 var _passages: Array[Dictionary] = []
+## Forros criados com `add_ceiling` (no bloco do andar de baixo da laje).
+var _ceiling_pieces: Array[CSGShape3D] = []
+## Material dos blocos assados com a cor nos vértices (criado sob demanda).
+var _vertex_color_material: StandardMaterial3D
 
 
 func _initialize() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--out="):
 			out_path = arg.substr(6)
+	# O CSG só é calculado no frame seguinte, então a geração roda numa corrotina.
+	_generate.call_deferred()
 
+
+func _generate() -> void:
 	map_root = Node3D.new()
 	map_root.name = root_name
 	map_root.set_script(load("res://scenes/maps/map_base.gd"))
@@ -77,6 +104,7 @@ func _initialize() -> void:
 
 	_report_overlaps()
 	_report_passages()
+	await _bake_structure()
 	_set_owner_recursive(map_root)
 	var packed := PackedScene.new()
 	var err := packed.pack(map_root)
@@ -144,8 +172,9 @@ func add_slab(parent: Node, slab_name: String, rect: Rect2, top: float, color: C
 		add_floor(parent, "%s%d" % [slab_name, i + 1], pieces[i], color, top)
 
 
-## Forro só visual (sem colisão) com a face de baixo em `bottom`, para o teto não
-## mostrar a cor do piso de cima.
+## Forro só visual (sem colisão) colado embaixo da altura `bottom` (a face de baixo
+## da laje), para o teto não mostrar a cor do piso de cima. Fica 2 cm abaixo da laje:
+## com as faces na mesma altura, o Compatibility e o Mobile mostram as duas piscando.
 func add_ceiling(parent: Node, ceiling_name: String, rect: Rect2, bottom: float, color: Color, holes: Array = []) -> void:
 	var pieces: Array[Rect2] = [rect]
 	for hole: Rect2 in holes:
@@ -157,9 +186,10 @@ func add_ceiling(parent: Node, ceiling_name: String, rect: Rect2, bottom: float,
 		var box := CSGBox3D.new()
 		box.name = "%s%d" % [ceiling_name, i + 1]
 		box.size = Vector3(pieces[i].size.x, 0.02, pieces[i].size.y)
-		box.position = Vector3(pieces[i].get_center().x, bottom + 0.01, pieces[i].get_center().y)
+		box.position = Vector3(pieces[i].get_center().x, bottom - 0.01, pieces[i].get_center().y)
 		box.material = PropBuilder.get_material(color)
 		parent.add_child(box)
+		_ceiling_pieces.append(box)
 
 
 func add_floor(parent: Node, floor_name: String, rect: Rect2, color: Color, top := 0.0, collision := true) -> void:
@@ -520,6 +550,283 @@ func _report_overlaps() -> void:
 				reported[key] = true
 				print("  sobreposição: %s (%s)" % [key, overlap.snapped(Vector3.ONE * 0.01)])
 	print("sobreposições encontradas: %d" % reported.size())
+
+
+# --- Estrutura assada ------------------------------------------------------------
+
+## Troca as paredes, os pisos e os forros por blocos de CHUNK_SIZE × CHUNK_SIZE m
+## (cortados também nas alturas de `chunk_levels`): cada bloco é uma malha assada
+## com um StaticBody3D de colisão (camada 1, mundo) feito das peças que tinham
+## colisão. Sem CSG o mapa carrega mais rápido, e cada malha só recebe as luzes
+## perto dela. Pisos maiores que MAX_BAKED_FLOOR (gramados) continuam em CSG.
+func _bake_structure() -> void:
+	var solid: Array[CSGShape3D] = []
+	solid.assign(walls.get_children())
+	var visual: Array[CSGShape3D] = []
+	# Pisos e forros (caixas sem rotação) entram inteiros no andar deles: o do topo
+	# do piso ou o da face de baixo do forro. Assim as lajes não viram fatias.
+	var flat := {}
+	for group_name in BAKED_GROUPS:
+		var group := map_root.get_node_or_null(group_name)
+		if group == null:
+			continue
+		for node in group.find_children("*", "CSGShape3D", true, false):
+			var piece := node as CSGShape3D
+			if piece.get_parent() is CSGShape3D or not (piece is CSGBox3D or piece is CSGMesh3D):
+				continue
+			var size := _piece_bounds(piece).size
+			if maxf(size.x, size.z) > MAX_BAKED_FLOOR:
+				continue
+			(solid if piece.use_collision else visual).append(piece)
+			if piece is CSGBox3D and _map_transform(piece).basis.is_equal_approx(Basis.IDENTITY):
+				var aabb := _piece_bounds(piece)
+				var y := aabb.position.y + 0.01 if piece in _ceiling_pieces else aabb.end.y - 0.01
+				flat[piece] = _chunk_of(Vector3(0, y, 0)).y
+	var bounds := _piece_bounds(solid[0])
+	for piece in solid + visual:
+		bounds = bounds.merge(_piece_bounds(piece))
+	bounds = bounds.grow(1.0)
+
+	# Cada bloco recebe cópias das peças que encostam nele, recortadas pela caixa do
+	# bloco. As faces do corte ficam com um material marcador e são descartadas
+	# (estão dentro das peças); a colisão fica com elas, o que não atrapalha.
+	var cut_material := StandardMaterial3D.new()
+	var cells := {}
+	for piece in solid + visual:
+		var aabb := _piece_bounds(piece)
+		var first := _chunk_of(aabb.position)
+		var last := _chunk_of(aabb.end)
+		if flat.has(piece):
+			first.y = flat[piece]
+			last.y = flat[piece]
+		for x in range(first.x, last.x + 1):
+			for y in range(first.y, last.y + 1):
+				for z in range(first.z, last.z + 1):
+					var cell: Dictionary = cells.get_or_add(Vector3i(x, y, z), {"solid": [], "visual": []})
+					cell["solid" if piece in solid else "visual"].append(piece)
+	var keys := cells.keys()
+	keys.sort()
+	var combiners: Array[Dictionary] = []
+	for key: Vector3i in keys:
+		var region := _chunk_bounds(key, bounds)
+		var entry := {"cell": key}
+		for kind in ["solid", "visual"]:
+			if not cells[key][kind].is_empty():
+				entry[kind] = _cut_combiner(cells[key][kind], region, cut_material, flat)
+		combiners.append(entry)
+	await process_frame
+
+	var baked := Node3D.new()
+	baked.name = "Walls"
+	for entry in combiners:
+		var surfaces: Array[Dictionary] = []
+		for kind in ["solid", "visual"]:
+			if entry.has(kind):
+				var source: ArrayMesh = entry[kind].bake_static_mesh()
+				for i in source.get_surface_count():
+					if source.surface_get_material(i) != cut_material:
+						surfaces.append({"arrays": source.surface_get_arrays(i), "material": source.surface_get_material(i)})
+		var mesh := _block_mesh(surfaces)
+		if mesh.get_surface_count() > 0:
+			var block := MeshInstance3D.new()
+			block.name = "Bloco%d" % (baked.get_child_count() + 1)
+			block.mesh = mesh
+			if not chunk_levels.is_empty():
+				block.layers = _storey_layer(entry.cell.y)
+			baked.add_child(block)
+			if entry.has("solid"):
+				var shape := CollisionShape3D.new()
+				shape.name = "Forma"
+				shape.shape = entry.solid.bake_collision_shape()
+				var body := StaticBody3D.new()
+				body.name = "Colisao"
+				body.add_child(shape)
+				block.add_child(body)
+		for kind in ["solid", "visual"]:
+			if entry.has(kind):
+				entry[kind].free()
+
+	var index := walls.get_index()
+	map_root.remove_child(walls)
+	walls.free()
+	for piece in solid + visual:
+		if is_instance_valid(piece):
+			piece.free()
+	for group_name in BAKED_GROUPS:
+		var group := map_root.get_node_or_null(group_name)
+		if group:
+			_free_empty_groups(group)
+	map_root.add_child(baked)
+	map_root.move_child(baked, index)
+	if not chunk_levels.is_empty():
+		_limit_lights_to_storeys()
+	_report_lights(baked)
+
+
+## Cada luz ilumina só os blocos do seu andar (as outras camadas continuam todas).
+func _limit_lights_to_storeys() -> void:
+	var storeys := 0
+	for level in chunk_levels.size() + 1:
+		storeys |= _storey_layer(level)
+	for node in map_root.find_children("*", "Light3D", true, false):
+		var light := node as Light3D
+		if light is OmniLight3D or light is SpotLight3D:
+			var level := _chunk_of(_map_transform(light).origin).y
+			light.light_cull_mask = (light.light_cull_mask & ~storeys) | _storey_layer(level)
+
+
+func _storey_layer(level: int) -> int:
+	return 1 << (STOREY_FIRST_LAYER - 1 + level)
+
+
+## Combinador (já na árvore, para o CSG ser calculado) com cópias de `pieces`
+## recortadas pela caixa `region`. As peças de `flat` são recortadas só em X e Z,
+## depois do recorte das outras.
+func _cut_combiner(pieces: Array, region: AABB, cut_material: Material, flat: Dictionary) -> CSGCombiner3D:
+	var combiner := CSGCombiner3D.new()
+	for piece: CSGShape3D in pieces:
+		if not flat.has(piece):
+			var copy := piece.duplicate() as CSGShape3D
+			copy.transform = _map_transform(piece)
+			copy.use_collision = false
+			combiner.add_child(copy)
+	# Sem peças antes dele, o recorte viraria a própria caixa do bloco.
+	if combiner.get_child_count() > 0:
+		var box := CSGBox3D.new()
+		box.position = region.get_center()
+		box.size = region.size
+		box.operation = CSGShape3D.OPERATION_INTERSECTION
+		box.material = cut_material
+		combiner.add_child(box)
+	for piece: CSGShape3D in pieces:
+		if flat.has(piece):
+			var aabb := _piece_bounds(piece)
+			var low := Vector3(maxf(aabb.position.x, region.position.x), aabb.position.y,
+				maxf(aabb.position.z, region.position.z))
+			var high := Vector3(minf(aabb.end.x, region.end.x), aabb.end.y, minf(aabb.end.z, region.end.z))
+			if high.x - low.x < 0.001 or high.z - low.z < 0.001:
+				continue
+			var copy := piece.duplicate() as CSGBox3D
+			copy.transform = Transform3D(Basis(), (low + high) * 0.5)
+			copy.size = high - low
+			copy.use_collision = false
+			combiner.add_child(copy)
+	root.add_child(combiner)
+	return combiner
+
+
+## Avisa sobre blocos com mais luzes ao alcance do que o Mobile e o Compatibility
+## aplicam (as que sobram são escolhidas sem critério de distância).
+func _report_lights(baked: Node3D) -> void:
+	var lights: Array[Dictionary] = []
+	for node in map_root.find_children("*", "Light3D", true, false):
+		if node is OmniLight3D:
+			lights.append({"at": _map_transform(node).origin, "range": (node as OmniLight3D).omni_range,
+				"mask": (node as Light3D).light_cull_mask})
+		elif node is SpotLight3D:
+			lights.append({"at": _map_transform(node).origin, "range": (node as SpotLight3D).spot_range,
+				"mask": (node as Light3D).light_cull_mask})
+	var most := 0
+	var crowded := 0
+	for block: MeshInstance3D in baked.get_children():
+		var aabb := block.mesh.get_aabb()
+		var count := 0
+		for light in lights:
+			var at: Vector3 = light.at
+			if light.mask & block.layers and at.clamp(aabb.position, aabb.end).distance_to(at) < light.range:
+				count += 1
+		most = maxi(most, count)
+		if count > MAX_LIGHTS_PER_MESH:
+			crowded += 1
+			print("  bloco com %d luzes ao alcance: %s (%s)" % [count, block.name, aabb.get_center().snapped(Vector3.ONE * 0.1)])
+	print("blocos assados: %d | luzes ao alcance de um bloco: até %d | blocos com mais de %d: %d" % [
+		baked.get_child_count(), most, MAX_LIGHTS_PER_MESH, crowded])
+
+
+## Caixa envolvente de uma peça CSG (caixa ou malha) em relação à raiz do mapa.
+func _piece_bounds(piece: CSGShape3D) -> AABB:
+	var local := AABB()
+	if piece is CSGBox3D:
+		var size := (piece as CSGBox3D).size
+		local = AABB(-size * 0.5, size)
+	elif piece is CSGMesh3D:
+		local = (piece as CSGMesh3D).mesh.get_aabb()
+	return _map_transform(piece) * local
+
+
+func _chunk_of(point: Vector3) -> Vector3i:
+	var level := 0
+	for height in chunk_levels:
+		if point.y > height:
+			level += 1
+	return Vector3i(floori((point.x - CHUNK_OFFSET) / CHUNK_SIZE), level,
+		floori((point.z - CHUNK_OFFSET) / CHUNK_SIZE))
+
+
+## Caixa de um bloco; na altura vai de um corte ao outro (ou até `limits`).
+func _chunk_bounds(cell: Vector3i, limits: AABB) -> AABB:
+	var bottom := limits.position.y if cell.y == 0 else chunk_levels[cell.y - 1]
+	var top := limits.end.y if cell.y == chunk_levels.size() else chunk_levels[cell.y]
+	var start := Vector3(cell.x * CHUNK_SIZE + CHUNK_OFFSET, bottom, cell.z * CHUNK_SIZE + CHUNK_OFFSET)
+	return AABB(start, Vector3(CHUNK_SIZE, top - bottom, CHUNK_SIZE))
+
+
+## Malha de um bloco. As superfícies de cor lisa (materiais de
+## PropBuilder.get_material) viram uma só, com a cor nos vértices e um material
+## compartilhado: uma chamada de desenho por bloco em vez de uma por cor.
+func _block_mesh(surfaces: Array[Dictionary]) -> ArrayMesh:
+	var mesh := ArrayMesh.new()
+	var plain: Array[Dictionary] = []
+	for surface in surfaces:
+		var material: Material = surface.material
+		if material is StandardMaterial3D and material == PropBuilder.get_material(material.albedo_color):
+			var colors := PackedColorArray()
+			colors.resize(surface.arrays[Mesh.ARRAY_VERTEX].size())
+			colors.fill(material.albedo_color)
+			surface.arrays[Mesh.ARRAY_COLOR] = colors
+			# Sem textura nem relevo, UV e tangentes só ocupariam espaço.
+			surface.arrays[Mesh.ARRAY_TEX_UV] = null
+			surface.arrays[Mesh.ARRAY_TANGENT] = null
+			plain.append(surface)
+		else:
+			_add_indexed_surface(mesh, [surface], material)
+	if not plain.is_empty():
+		if _vertex_color_material == null:
+			_vertex_color_material = PropBuilder.get_material(Color.WHITE).duplicate()
+			_vertex_color_material.vertex_color_use_as_albedo = true
+			_vertex_color_material.vertex_color_is_srgb = true
+		_add_indexed_surface(mesh, plain, _vertex_color_material)
+	return mesh
+
+
+## Junta as superfícies (mesmo formato) numa só, indexada.
+func _add_indexed_surface(mesh: ArrayMesh, surfaces: Array[Dictionary], material: Material) -> void:
+	var tool := SurfaceTool.new()
+	for surface in surfaces:
+		var part := ArrayMesh.new()
+		part.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, surface.arrays)
+		tool.append_from(part, 0, Transform3D.IDENTITY)
+	tool.index()
+	tool.set_material(material)
+	tool.commit(mesh)
+
+
+func _free_empty_groups(group: Node) -> void:
+	for child in group.get_children():
+		if child.get_class() == "Node3D":
+			_free_empty_groups(child)
+	if group.get_child_count() == 0:
+		group.free()
+
+
+## Transformação de um nó em relação à raiz do mapa (que não está na árvore).
+func _map_transform(node: Node3D) -> Transform3D:
+	var result := node.transform
+	var parent := node.get_parent()
+	while parent != map_root and parent is Node3D:
+		result = (parent as Node3D).transform * result
+		parent = parent.get_parent()
+	return result
 
 
 # --- Auxiliares ----------------------------------------------------------------

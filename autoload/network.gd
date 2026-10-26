@@ -1,6 +1,8 @@
 extends Node
-## Conexão ENet (host/cliente) e registro dos jogadores conectados.
+## Conexão WebSocket (host/cliente) e registro dos jogadores conectados.
 ## O servidor é a fonte da verdade de `players` e replica a lista para todos.
+## WebSocket (TCP) em vez de ENet (UDP) porque o navegador só fala WebSocket:
+## assim PC, Android e a versão web jogam na mesma partida.
 ##
 ## Antes de a conexão ser aceita, cliente e host trocam a versão do jogo na etapa
 ## de autenticação do SceneMultiplayer. Com versões diferentes, o host recusa o
@@ -57,20 +59,22 @@ func is_online() -> bool:
 
 
 func host_game(player_name: String) -> Error:
-	var peer := ENetMultiplayerPeer.new()
-	var err := peer.create_server(PORT, MAX_PLAYERS)
+	var peer := WebSocketMultiplayerPeer.new()
+	var err := peer.create_server(PORT)
 	if err != OK:
 		return err
 	multiplayer.multiplayer_peer = peer
 	local_name = player_name
 	players.clear()
 	_register(1, player_name)
+	# Quem hospeda também entrega a versão web para celulares e navegadores.
+	WebHost.start()
 	return OK
 
 
 func join_game(address: String, player_name: String) -> Error:
-	var peer := ENetMultiplayerPeer.new()
-	var err := peer.create_client(address, PORT)
+	var peer := WebSocketMultiplayerPeer.new()
+	var err := peer.create_client("ws://%s:%d" % [address, PORT])
 	if err != OK:
 		return err
 	multiplayer.multiplayer_peer = peer
@@ -80,6 +84,7 @@ func join_game(address: String, player_name: String) -> Error:
 
 
 func leave() -> void:
+	WebHost.stop()
 	if multiplayer.multiplayer_peer:
 		multiplayer.multiplayer_peer.close()
 	multiplayer.multiplayer_peer = null
@@ -151,6 +156,14 @@ func _on_auth_data(id: int, data: PackedByteArray) -> void:
 		info = {}
 	if multiplayer.is_server():
 		var their_version := str(info.get("version", "desconhecida"))
+		# O WebSocket não tem limite de conexões como o ENet: a lotação é conferida aqui.
+		if their_version == version and players.size() >= MAX_PLAYERS:
+			_rejected_peers[id] = true
+			scene_multiplayer.send_auth(id, var_to_bytes({"ok": false, "full": true}))
+			get_tree().create_timer(0.5).timeout.connect(func() -> void:
+				if multiplayer.has_multiplayer_peer() and id in scene_multiplayer.get_authenticating_peers():
+					scene_multiplayer.disconnect_peer(id))
+			return
 		if their_version == version:
 			scene_multiplayer.send_auth(id, var_to_bytes({"ok": true}))
 			scene_multiplayer.complete_auth(id)
@@ -172,7 +185,9 @@ func _on_auth_data(id: int, data: PackedByteArray) -> void:
 		scene_multiplayer.complete_auth(id)
 	else:
 		var message := tr("O host recusou a conexão.")
-		if info.has("host_version"):
+		if info.get("full", false):
+			message = tr("A partida está cheia (máximo de %d jogadores).") % MAX_PLAYERS
+		elif info.has("host_version"):
 			message = tr("Versões diferentes: você tem a %s e o host tem a %s.\nInstale a mesma versão do host para jogar juntos.") \
 				% [version, info.host_version]
 		# Fecha a conexão fora do callback: o Godot ainda está processando este pacote.

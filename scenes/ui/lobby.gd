@@ -124,13 +124,24 @@ func _refresh() -> void:
 		mode_text += "\n" + tr("Tempos automáticos: definidos pelo mapa vencedor e pelo número de jogadores.")
 	if is_host:
 		var addresses := Network.get_local_addresses()
-		info_label.text = "%s\n%s\n%s" % [
+		info_label.text = "%s\n%s\n%s\n%s" % [
 			mode_text,
 			tr("Seu IP na rede: %s (porta %d)") % [", ".join(addresses) if not addresses.is_empty() else tr("desconhecido"), Network.PORT],
+			_web_text(addresses),
 			_status_text(),
 		]
 	else:
 		info_label.text = mode_text + "\n" + tr("Aguardando o host iniciar a partida...")
+
+
+## Endereço para quem vai jogar pelo navegador (celular, tablet, outro PC).
+func _web_text(addresses: PackedStringArray) -> String:
+	if not WebHost.is_running():
+		return tr("Versão para navegador indisponível nesta build.")
+	var urls := PackedStringArray()
+	for address in addresses:
+		urls.append("http://%s:%d" % [address, WebHost.PORT])
+	return tr("Celulares e navegadores: abram %s") % (", ".join(urls) if not urls.is_empty() else "http://<IP>:%d" % WebHost.PORT)
 
 
 func _status_text() -> String:

@@ -95,7 +95,8 @@ func _toggle_collisions() -> void:
 		GameState.COLOR_INFO)
 
 
-## Desenha a forma de colisão de cada CollisionShape3D e de cada CSG com colisão.
+## Desenha a forma de colisão de cada CollisionShape3D (inclusive a dos blocos
+## assados de paredes, pisos e forros) e de cada CSG com colisão que sobrou.
 ## Roda de tempos em tempos para acompanhar disfarces e jogadores novos.
 func _update_overlays(root: Node) -> void:
 	for node in root.find_children("*", "CollisionShape3D", true, false):

@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Pique-Prop"
 config/description="Pique-esconde multiplayer 3D no estilo prop-hunt."
-config/version="0.5.0"
+config/version="0.6.0"
 run/main_scene="res://scenes/ui/main_menu.tscn"
 config/quit_on_go_back=false
 config/features=PackedStringArray("4.7", "Forward Plus")
@@ -22,6 +22,8 @@ config/icon="res://icon.svg"
 
 Language="*res://autoload/language.gd"
 InputMode="*res://autoload/input_mode.gd"
+WebAudio="*res://autoload/web_audio.gd"
+WebHost="*res://autoload/web_host.gd"
 Controls="*res://autoload/controls.gd"
 Network="*res://autoload/network.gd"
 GameState="*res://autoload/game_state.gd"
@@ -43,7 +45,11 @@ locale/fallback="pt_BR"
 [rendering]
 
 textures/vram_compression/import_etc2_astc=true
+environment/ssao/quality.web=0
+lights_and_shadows/directional_shadow/size.web=2048
+lights_and_shadows/directional_shadow/soft_shadow_filter_quality.web=0
 scaling_3d/scale.mobile=0.75
+scaling_3d/scale.web=0.75
 
 [layer_names]
 

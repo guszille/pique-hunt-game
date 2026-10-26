@@ -9,8 +9,13 @@ e scanner, e as pontas das antenas ficam vermelhas.
 
 ## Como jogar
 
-1. Um jogador clica em **Hospedar partida**. O lobby mostra o IP dele na rede.
-2. Os outros digitam esse IP e clicam em **Entrar** (porta UDP 7777).
+1. Um jogador clica em **Hospedar partida** no PC ou no Android. O lobby mostra o
+   IP dele na rede e o endereço da versão para navegador.
+2. Os outros entram de um destes jeitos:
+   - **Pelo jogo instalado** (PC ou Android): digitam o IP do host e clicam em **Entrar**.
+   - **Pelo navegador** (iPhone, Android, tablet ou outro PC, sem instalar nada): abrem
+     o endereço que o lobby mostra, como `http://192.168.0.10:8080`, e tocam em **Entrar**
+     (o IP já vem preenchido). Veja [Navegador](#navegador).
 3. O host escolhe o modo e clica em **Iniciar partida** (mínimo de 2 jogadores).
 
 Os **tempos automáticos** vêm ligados: a preparação e a caçada se ajustam ao mapa
@@ -64,6 +69,28 @@ No celular (ou num PC com tela de toque), aparecem controles de toque:
 O jogo troca sozinho entre teclado e toque conforme o último comando usado.
 Celular e PC jogam juntos na mesma rede, desde que tenham a mesma versão.
 
+### Navegador
+
+Quem hospeda pelo PC ou pelo Android também entrega uma versão do jogo para
+navegador, na porta 8080. Qualquer aparelho na mesma rede abre o endereço mostrado
+no lobby e joga, sem instalar nada. É o jeito mais fácil de jogar no iPhone.
+
+- A página detecta o aparelho: no celular aparecem os controles de toque e a
+  interface maior; no PC, teclado e mouse.
+- O navegador não hospeda partidas, só entra. Por isso o menu dele não tem
+  **Hospedar partida**, e o IP do host já vem preenchido.
+- **Tela cheia:** no Android e no PC há o botão **Tela cheia**. No iPhone, o Safari
+  não tem tela cheia para páginas: toque em *Compartilhar → Adicionar à Tela de
+  Início* e abra o jogo pelo ícone criado.
+- **Mouse no PC:** o Esc é do navegador e solta o mouse. O jogo abre a pausa nessa
+  hora, e o clique em **Continuar** prende o mouse de novo.
+- **Som:** a página vem por `http://`, que não é "contexto seguro", e nesse caso o
+  navegador não oferece o recurso de áudio do Godot. O jogo então toca os efeitos
+  pelo Web Audio do navegador, com o lado e o volume calculados pela câmera (sem o
+  som 3D completo). O som só começa depois do primeiro toque ou clique.
+- O desempenho no navegador é menor que no app, porque a web usa o renderizador de
+  compatibilidade (WebGL 2).
+
 ### Disfarces
 
 Dá para virar móveis e objetos compostos (geladeira, sofá, cama, mesa, xícara
@@ -99,13 +126,17 @@ assobiam de tempos em tempos.
 autoload/language.gd     idioma escolhido e tradução das mensagens do host
 autoload/input_mode.gd   modo de controle (teclado ou toque) e nomes dos botões de toque
 autoload/controls.gd     ações de input
-autoload/network.gd      ENet (host/cliente) e lista de jogadores
+autoload/network.gd      WebSocket (host/cliente) e lista de jogadores
+autoload/web_host.gd     servidor HTTP do host que entrega a versão web (porta 8080)
+autoload/web_audio.gd    sons pelo Web Audio quando a página vem por http://
 autoload/game_state.gd   fases da rodada, sorteio, capturas, disfarces, pontos (servidor)
 autoload/debug_tools.gd  modo de depuração: teste solo e teclas F1–F6
 scripts/prop_builder.gd  gera malhas/colisões de primitivas e de objetos compostos
 scripts/prop_catalog.gd  catálogo de objetos compostos (junta as listas abaixo)
 scripts/catalog/         objetos de cada mapa: house_items, factory_items, park_items
 scripts/sfx.gd           sons sintetizados em código
+scripts/web_page.gd      ajudas da versão web (tela cheia, endereço da página, iOS)
+web/shell.html           página HTML da exportação web (roda sem HTTPS, sem o áudio do motor)
 scenes/props/prop.*      objeto do cenário (disfarçável ou decoração)
 scenes/player/player.*   jogador em 3ª pessoa (MoveSync = dono, StateSync = servidor)
 scenes/player/alien_model.gd  visual e animação do alien, montado com primitivas
@@ -208,7 +239,9 @@ Gerenciar modelos de exportação*, e o ambiente do Android descrito em
 tools/export.sh
 ```
 
-O script gera um executável único (com os dados embutidos) para cada sistema de PC,
+O script exporta primeiro a versão web (`build/web/`) e a compacta em `web/site.zip`,
+que vai embutido nas builds de PC e Android para o host servir aos navegadores.
+Depois gera um executável único (com os dados embutidos) para cada sistema de PC,
 um `.zip` de cada um e o `.apk` do Android em `build/`:
 
 - `build/PiqueProp-<versão>-linux.zip` contém `PiqueProp.x86_64`. No Linux, talvez
@@ -315,6 +348,9 @@ O celular precisa estar no mesmo Wi-Fi que os outros jogadores (veja
 
 ### iOS
 
+Para jogar no iPhone sem Mac, use a [versão para navegador](#navegador). O app
+nativo de iOS é opcional.
+
 O preset "iOS" está pronto em `export_presets.cfg` (bundle id
 `com.guszille.piqueprop`, paisagem pelo `project.godot` e o texto do pedido de
 acesso à rede local, `NSLocalNetworkUsageDescription`, em
@@ -353,13 +389,17 @@ TestFlight.
 
 1. Todos no mesmo roteador. Redes de convidados ou com isolamento de clientes
    (AP isolation) bloqueiam a conexão.
-2. Quem hospeda clica em **Hospedar partida**. O lobby mostra o IP dele.
-3. Os outros digitam esse IP e clicam em **Entrar**.
+2. Quem hospeda clica em **Hospedar partida**. O lobby mostra o IP dele e o
+   endereço da versão para navegador.
+3. Os outros digitam esse IP e clicam em **Entrar**, ou abrem o endereço no navegador.
 
-O jogo usa a porta **UDP 7777**. Se não conectar, libere essa porta no firewall de
-quem hospeda (no Linux: `sudo ufw allow 7777/udp`; no Windows: aceite o aviso do
-firewall). Para jogar pela internet sem abrir portas, use uma VPN como Tailscale
-ou ZeroTier e conecte pelo IP que ela fornece.
+A partida usa a porta **TCP 7777** (WebSocket, para o navegador também conseguir
+entrar), e a página para navegador usa a **TCP 8080**. Se não conectar, libere as
+duas no firewall de quem hospeda (no Linux: `sudo ufw allow 7777/tcp` e
+`sudo ufw allow 8080/tcp`; no Windows: aceite o aviso do firewall). Até a 0.5 o
+jogo usava UDP, então versões antigas não jogam com a 0.6. Para jogar pela
+internet sem abrir portas, use uma VPN como Tailscale ou ZeroTier e conecte pelo IP
+que ela fornece.
 
 ## Modo de depuração (testar sozinho)
 

@@ -13,8 +13,10 @@ func _ready() -> void:
 	host_button.pressed.connect(_on_host_pressed)
 	join_button.pressed.connect(_on_join_pressed)
 	%QuitButton.pressed.connect(get_tree().quit)
-	# Em celular, sair é pelo sistema (botão Voltar ou trocar de app).
-	%QuitButton.visible = not InputMode.handheld
+	# Em celular, sair é pelo sistema (botão Voltar ou trocar de app); no navegador, fechando a aba.
+	%QuitButton.visible = not InputMode.handheld and not WebPage.is_web()
+	if WebPage.is_web():
+		_setup_web()
 	Network.connection_succeeded.connect(_on_connected)
 	Network.connection_failed.connect(_on_connection_failed)
 	Network.connection_rejected.connect(_on_connection_rejected)
@@ -25,6 +27,32 @@ func _ready() -> void:
 	status_label.text = GameState.menu_message
 	GameState.menu_message = ""
 	_apply_cmdline.call_deferred()
+
+
+## No navegador não dá para hospedar: a página veio do host, então o IP já é o dele.
+func _setup_web() -> void:
+	host_button.visible = false
+	$Scroll/Center/Panel/VBox/Separator.visible = false
+	var host := WebPage.host_name()
+	if host != "" and host != "localhost":
+		ip_edit.text = host
+	var index := join_button.get_index() + 1
+	if WebPage.can_fullscreen():
+		var fullscreen := Button.new()
+		fullscreen.text = tr("Tela cheia")
+		fullscreen.custom_minimum_size = Vector2(0, 36)
+		fullscreen.pressed.connect(WebPage.toggle_fullscreen)
+		join_button.get_parent().add_child(fullscreen)
+		join_button.get_parent().move_child(fullscreen, index)
+	elif WebPage.is_ios():
+		var tip := Label.new()
+		tip.text = tr("Dica: para jogar em tela cheia, toque em Compartilhar e depois em Adicionar à Tela de Início.")
+		tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		tip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		tip.custom_minimum_size = Vector2(356, 0)
+		tip.add_theme_font_size_override("font_size", 13)
+		join_button.get_parent().add_child(tip)
+		join_button.get_parent().move_child(tip, index)
 
 
 func _notification(what: int) -> void:
