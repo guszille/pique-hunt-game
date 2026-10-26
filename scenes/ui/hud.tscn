@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/ui/hud.gd" id="1_hud"]
 [ext_resource type="Script" path="res://scenes/ui/language_option.gd" id="2_language"]
+[ext_resource type="Script" path="res://scenes/ui/touch_controls.gd" id="3_touch"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_panel"]
 content_margin_left = 24.0
@@ -119,6 +120,16 @@ offset_right = -20.0
 offset_bottom = 400.0
 grow_horizontal = 0
 mouse_filter = 2
+
+[node name="TouchControls" type="Control" parent="."]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_touch")
 
 [node name="Blind" type="ColorRect" parent="."]
 unique_name_in_owner = true

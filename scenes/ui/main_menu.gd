@@ -13,6 +13,8 @@ func _ready() -> void:
 	host_button.pressed.connect(_on_host_pressed)
 	join_button.pressed.connect(_on_join_pressed)
 	%QuitButton.pressed.connect(get_tree().quit)
+	# Em celular, sair é pelo sistema (botão Voltar ou trocar de app).
+	%QuitButton.visible = not InputMode.handheld
 	Network.connection_succeeded.connect(_on_connected)
 	Network.connection_failed.connect(_on_connection_failed)
 	Network.connection_rejected.connect(_on_connection_rejected)
@@ -23,6 +25,12 @@ func _ready() -> void:
 	status_label.text = GameState.menu_message
 	GameState.menu_message = ""
 	_apply_cmdline.call_deferred()
+
+
+func _notification(what: int) -> void:
+	# Botão Voltar do Android: no menu principal, fecha o jogo.
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		get_tree().quit()
 
 
 func _update_version_label() -> void:

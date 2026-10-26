@@ -41,6 +41,12 @@ func _ready() -> void:
 	_refresh()
 
 
+func _notification(what: int) -> void:
+	# Botão Voltar do Android: sai da sala.
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		GameState.leave_to_menu()
+
+
 func _process(_delta: float) -> void:
 	# Modo de teste: `--autostart=N` inicia sozinho quando N jogadores entrarem
 	# (`--map=I` e `--mode=I` escolhem mapa (-1 = votação) e modo; `--prep=S` e `--hunt=S` ajustam os tempos).

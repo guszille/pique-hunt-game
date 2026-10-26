@@ -14,6 +14,9 @@ const TOAST_TIME := 4.0
 var _last_tick := -1
 ## Nome do objeto mirado pelo escondido, logo abaixo da mira.
 var _aim_label: Label
+var _debug_label: Label
+## Contador de FPS (só em builds de depuração, para medir no celular).
+var _fps_label: Label
 
 @onready var phase_label: Label = %PhaseLabel
 @onready var info_label: Label = %InfoLabel
@@ -29,6 +32,7 @@ var _aim_label: Label
 @onready var pause_menu: PanelContainer = %PauseMenu
 @onready var lobby_button: Button = %LobbyButton
 @onready var ui_audio: AudioStreamPlayer = %UiAudio
+@onready var touch_controls: Control = %TouchControls
 
 
 func _ready() -> void:
@@ -45,6 +49,15 @@ func _ready() -> void:
 	_add_aim_label()
 	if DebugTools.enabled:
 		_add_debug_label()
+		_add_fps_label()
+	InputMode.changed.connect(_apply_input_mode)
+	_apply_input_mode()
+
+
+func _notification(what: int) -> void:
+	# Botão Voltar do Android: abre e fecha o menu de pausa.
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		_set_paused(not pause_menu.visible)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -52,7 +65,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_set_paused(not pause_menu.visible)
 		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton and event.pressed and not pause_menu.visible \
-			and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+			and not InputMode.touch and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		get_viewport().set_input_as_handled()
 
@@ -82,7 +95,11 @@ func _process(_delta: float) -> void:
 	var aimed: Prop = player.get_aimed_prop() if crosshair.visible else null
 	_aim_label.visible = aimed != null
 	if aimed:
-		_aim_label.text = tr("[E] Virar %s") % aimed.get_label()
+		_aim_label.text = (tr("Virar %s") if InputMode.touch else tr("[E] Virar %s")) % aimed.get_label()
+
+	touch_controls.update_context(player, pause_menu.visible)
+	if _fps_label:
+		_fps_label.text = "%d FPS" % Engine.get_frames_per_second()
 
 	scoreboard.visible = Input.is_action_pressed("scoreboard") or phase == GameState.Phase.END
 
@@ -91,35 +108,44 @@ func _process(_delta: float) -> void:
 		_play(Sfx.tick())
 
 
+## Papel do jogador e dicas de comando. No toque, as dicas são curtas e citam
+## os botões da tela (os nomes vêm de InputMode.button_name).
 func _update_role(player: Player) -> void:
+	var touch := InputMode.touch
 	if DebugTools.free_camera:
 		role_label.text = tr("CÂMERA LIVRE")
 		role_label.modulate = Color("f1c40f")
-		hints_label.text = tr("WASD + mouse para voar  |  [Espaço] sobe  |  [Shift] desce  |  [F2] voltar ao jogador")
+		hints_label.text = tr("Use o analógico para voar e arraste para olhar.") if touch \
+			else tr("WASD + mouse para voar  |  [Espaço] sobe  |  [Shift] desce  |  [F2] voltar ao jogador")
 		return
 	if player == null:
 		role_label.text = tr("ASSISTINDO")
 		role_label.modulate = Color("bdc3c7")
-		hints_label.text = tr("Você entra na próxima rodada.  WASD + mouse para voar  |  [Tab] Placar")
+		hints_label.text = tr("Você entra na próxima rodada. Use o analógico para voar e arraste para olhar.") if touch \
+			else tr("Você entra na próxima rodada.  WASD + mouse para voar  |  [Tab] Placar")
 		return
 	if player.role == GameState.Role.SEEKER:
 		var title := tr("AJUDANTE DO PROCURADOR") if player.infected else tr("PROCURADOR")
 		role_label.text = title + (tr("  (lento!)") if player.is_slowed() else "")
 		role_label.modulate = Color("8bc34a") if player.infected else Color("e74c3c")
-		hints_label.text = tr("[Clique] Pegar (de perto)  |  Errar num objeto deixa você lento  |  [Tab] Placar")
+		hints_label.text = tr("Chegue perto, mire e toque em %s. Errar num objeto deixa você lento.") % InputMode.button_name("catch") \
+			if touch else tr("[Clique] Pegar (de perto)  |  Errar num objeto deixa você lento  |  [Tab] Placar")
 	elif player.caught:
 		role_label.text = tr("PEGO!")
 		role_label.modulate = Color("95a5a6")
-		hints_label.text = tr("Você foi pego. Voe e assista: WASD, [Espaço] sobe, [Shift] desce  |  [Tab] Placar")
+		hints_label.text = tr("Você foi pego. Use o analógico para voar e arraste para olhar.") if touch \
+			else tr("Você foi pego. Voe e assista: WASD, [Espaço] sobe, [Shift] desce  |  [Tab] Placar")
 	elif player.is_disguised():
 		role_label.text = tr("ESCONDIDO (disfarçado)")
 		role_label.modulate = Color("2ecc71")
-		hints_label.text = tr("[E] Trocar de objeto  |  [Q] Voltar a ser alien  |  [R] Rotação: %s  |  [Shift] Congelar") \
-			% (tr("TRAVADA") if player.rotation_locked else tr("livre"))
+		var rotation_state := tr("TRAVADA") if player.rotation_locked else tr("livre")
+		hints_label.text = tr("Rotação: %s  |  Segure %s para ficar imóvel") % [rotation_state, InputMode.button_name("freeze")] \
+			if touch else tr("[E] Trocar de objeto  |  [Q] Voltar a ser alien  |  [R] Rotação: %s  |  [Shift] Congelar") % rotation_state
 	else:
 		role_label.text = tr("ESCONDIDO")
 		role_label.modulate = Color("2ecc71")
-		hints_label.text = tr("Mire num objeto e aperte [E] para virar ele  |  [Espaço] Pular  |  [Tab] Placar")
+		hints_label.text = tr("Mire num objeto e toque em %s para virar ele.") % InputMode.button_name("transform") \
+			if touch else tr("Mire num objeto e aperte [E] para virar ele  |  [Espaço] Pular  |  [Tab] Placar")
 
 
 func _update_big_label(player: Player) -> void:
@@ -215,8 +241,20 @@ func _add_aim_label() -> void:
 	move_child(_aim_label, crosshair.get_index() + 1)
 
 
+func _add_fps_label() -> void:
+	_fps_label = Label.new()
+	_fps_label.position = Vector2(20, 46)
+	_fps_label.modulate = Color(1, 0.85, 0.3, 0.85)
+	_fps_label.add_theme_font_size_override("font_size", 14)
+	_fps_label.add_theme_constant_override("outline_size", 5)
+	_fps_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_fps_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_fps_label)
+
+
 func _add_debug_label() -> void:
 	var label := Label.new()
+	_debug_label = label
 	label.text = tr(DebugTools.HELP)
 	label.modulate = Color(1, 0.85, 0.3, 0.85)
 	label.add_theme_font_size_override("font_size", 14)
@@ -231,9 +269,37 @@ func _add_debug_label() -> void:
 	move_child(label, hints_label.get_index() + 1)
 
 
+## No toque, as dicas vão para o alto da tela (embaixo ficam o analógico e os
+## botões), os avisos ficam mais curtos e as teclas F de depuração somem.
+func _apply_input_mode() -> void:
+	var touch := InputMode.touch
+	if touch:
+		# Coluna estreita embaixo do papel, quebrando linha, longe do cronômetro.
+		hints_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+		hints_label.anchor_right = 0.36
+		hints_label.offset_top = 72.0
+		hints_label.offset_bottom = 140.0
+		hints_label.offset_right = 0.0
+		hints_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	else:
+		hints_label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+		hints_label.offset_top = -44.0
+		hints_label.offset_bottom = -14.0
+		hints_label.offset_right = -20.0
+		hints_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	hints_label.offset_left = 20.0
+	toasts.offset_top = 110.0 if touch else 90.0
+	toasts.offset_bottom = 280.0 if touch else 400.0
+	if _debug_label:
+		_debug_label.visible = not touch
+	if not touch and not pause_menu.visible:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
 func _set_paused(paused: bool) -> void:
 	pause_menu.visible = paused
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if paused else Input.MOUSE_MODE_CAPTURED
+	if not InputMode.touch:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if paused else Input.MOUSE_MODE_CAPTURED
 
 
 func _play(stream: AudioStream) -> void:

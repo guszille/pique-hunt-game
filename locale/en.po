@@ -839,3 +839,54 @@ msgstr "Giant teddy bear"
 
 msgid "Xícara maluca"
 msgstr "Teacup ride"
+
+msgid "PULAR"
+msgstr "JUMP"
+
+msgid "VIRAR"
+msgstr "BECOME"
+
+msgid "VOLTAR"
+msgstr "UNDO"
+
+msgid "GIRAR"
+msgstr "ROTATE"
+
+msgid "CONGELAR"
+msgstr "FREEZE"
+
+msgid "PEGAR"
+msgstr "CATCH"
+
+msgid "PLACAR"
+msgstr "SCORES"
+
+msgid "PAUSA"
+msgstr "PAUSE"
+
+msgid "SUBIR"
+msgstr "UP"
+
+msgid "DESCER"
+msgstr "DOWN"
+
+msgid "Virar %s"
+msgstr "Become %s"
+
+msgid "Use o analógico para voar e arraste para olhar."
+msgstr "Use the stick to fly and drag to look around."
+
+msgid "Você entra na próxima rodada. Use o analógico para voar e arraste para olhar."
+msgstr "You join next round. Use the stick to fly and drag to look around."
+
+msgid "Chegue perto, mire e toque em %s. Errar num objeto deixa você lento."
+msgstr "Get close, aim and tap %s. Hitting an object slows you down."
+
+msgid "Você foi pego. Use o analógico para voar e arraste para olhar."
+msgstr "You were caught. Use the stick to fly and drag to look around."
+
+msgid "Rotação: %s  |  Segure %s para ficar imóvel"
+msgstr "Rotation: %s  |  Hold %s to stay still"
+
+msgid "Mire num objeto e toque em %s para virar ele."
+msgstr "Aim at an object and tap %s to become it."

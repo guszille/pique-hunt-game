@@ -8,6 +8,8 @@ const ALIEN_SIZE := Vector3(0.7, 1.7, 0.7)
 const ALIEN_BODY := {"shape": PropBuilder.Shape.CAPSULE, "size": ALIEN_SIZE, "color": Color.WHITE}
 const GRAVITY := 16.0
 const MOUSE_SENSITIVITY := 0.0025
+## Radianos por pixel de arraste no modo toque.
+const TOUCH_SENSITIVITY := 0.006
 const ALIEN_SPEED := 5.0
 const SEEKER_SPEED := 6.0
 const JUMP_VELOCITY := 6.0
@@ -101,7 +103,9 @@ func _ready() -> void:
 	aim_ray.add_exception(self)
 	if is_local:
 		cam_yaw = rotation.y
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		InputMode.look.connect(_on_touch_look)
+		if not InputMode.touch:
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	move_sync.add_visibility_filter(_is_visible_to)
 	state_sync.add_visibility_filter(_is_visible_to)
 	_update_visuals()
@@ -110,9 +114,11 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_multiplayer_authority():
 		return
+	# No toque, o mouse emulado (um dedo) não gira a câmera nem conta como clique de pegar.
+	if event is InputEventMouse and InputMode.touch:
+		return
 	if event is InputEventMouseMotion and _has_input():
-		cam_yaw -= event.relative.x * MOUSE_SENSITIVITY
-		cam_pitch = clampf(cam_pitch - event.relative.y * MOUSE_SENSITIVITY, -1.3, 0.8)
+		_add_look(event.relative * MOUSE_SENSITIVITY)
 		return
 	if caught or not GameState.can_move() or not _has_input():
 		return
@@ -336,7 +342,17 @@ func _spectate(delta: float) -> void:
 
 func _has_input() -> bool:
 	# Com a câmera livre de depuração (F2), o mouse e o teclado movem só a câmera.
-	return Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and not DebugTools.free_camera
+	return InputMode.is_playing() and not DebugTools.free_camera
+
+
+func _add_look(amount: Vector2) -> void:
+	cam_yaw -= amount.x
+	cam_pitch = clampf(cam_pitch - amount.y, -1.3, 0.8)
+
+
+func _on_touch_look(relative: Vector2) -> void:
+	if _has_input():
+		_add_look(relative * TOUCH_SENSITIVITY)
 
 
 func _is_visible_to(peer: int) -> bool:

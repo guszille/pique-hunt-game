@@ -38,17 +38,31 @@ no próprio idioma, inclusive os avisos do host.
 Cada rodada passa por: **Sorteio → Preparação** (o procurador fica preso e com a tela
 escura) **→ Caçada → Fim** (placar). Depois começa uma nova rodada com outro procurador.
 
-| Tecla | Escondido | Procurador |
-|---|---|---|
-| WASD / mouse | andar / câmera | andar / câmera |
-| Espaço | pular | pular |
-| E | virar o objeto mirado (o nome dele aparece embaixo da mira) | — |
-| Q | voltar a ser alien | — |
-| R | travar a rotação do objeto | — |
-| Shift (segurar) | congelar | — |
-| Clique esquerdo | — | pegar (de perto). Errar num objeto deixa você lento |
-| Tab | placar | placar |
-| Esc | pausa | pausa |
+| Tecla | Celular | Escondido | Procurador |
+|---|---|---|---|
+| WASD / mouse | analógico (esquerda) / arrastar | andar / câmera | andar / câmera |
+| Espaço | PULAR | pular | pular |
+| E | VIRAR | virar o objeto mirado (o nome dele aparece embaixo da mira) | — |
+| Q | VOLTAR | voltar a ser alien | — |
+| R | GIRAR | travar a rotação do objeto | — |
+| Shift (segurar) | CONGELAR (segurar) | congelar | — |
+| Clique esquerdo | PEGAR | — | pegar (de perto). Errar num objeto deixa você lento |
+| Tab | PLACAR (segurar) | placar | placar |
+| Esc | PAUSA ou Voltar do Android | pausa | pausa |
+
+### Celular
+
+No celular (ou num PC com tela de toque), aparecem controles de toque:
+
+- **Analógico:** encoste o polegar em qualquer ponto da parte esquerda da tela e
+  arraste. O analógico nasce onde você encostou.
+- **Câmera:** arraste em qualquer outro lugar da tela.
+- **Botões à direita:** só aparecem os que valem para o seu papel naquele momento.
+  O botão principal (VIRAR ou PEGAR) fica verde quando a mira está num alvo.
+- As dicas da tela citam os botões em vez das teclas.
+
+O jogo troca sozinho entre teclado e toque conforme o último comando usado.
+Celular e PC jogam juntos na mesma rede, desde que tenham a mesma versão.
 
 ### Disfarces
 
@@ -83,6 +97,7 @@ assobiam de tempos em tempos.
 
 ```
 autoload/language.gd     idioma escolhido e tradução das mensagens do host
+autoload/input_mode.gd   modo de controle (teclado ou toque) e nomes dos botões de toque
 autoload/controls.gd     ações de input
 autoload/network.gd      ENet (host/cliente) e lista de jogadores
 autoload/game_state.gd   fases da rodada, sorteio, capturas, disfarces, pontos (servidor)
@@ -99,10 +114,11 @@ scenes/maps/house.tscn   mapa "Casa", gerado por tools/build_house.gd
 scenes/maps/factory.tscn mapa "Fábrica", gerado por tools/build_factory.gd
 scenes/maps/park.tscn    mapa "Parque", gerado por tools/build_park.gd
 tools/map_builder.gd     base dos geradores de mapa (paredes, pisos, objetos, aviso de sobreposição)
-tools/export.sh          exporta para Linux e Windows (build/)
+tools/export.sh          exporta para Linux, Windows e Android (build/)
 tools/check_translations.py  confere se todos os textos têm tradução em locale/en.po
 locale/en.po             traduções para o inglês
 scenes/ui/               menu, lobby e HUD
+scenes/ui/touch_controls.gd  analógico, arraste de câmera e botões de toque (touch_button.gd)
 ```
 
 ### Traduções
@@ -185,20 +201,24 @@ Depois de editar um mapa no editor, não rode o gerador dele de novo.
 ## Exportar (gerar o jogo para distribuir)
 
 Requer os modelos de exportação do Godot 4.7.2, que você instala em *Editor →
-Gerenciar modelos de exportação*. Depois rode:
+Gerenciar modelos de exportação*, e o ambiente do Android descrito em
+[Android](#android). Depois rode:
 
 ```bash
 tools/export.sh
 ```
 
-O script gera um executável único (com os dados embutidos) para cada sistema e um
-`.zip` de cada um em `build/`:
+O script gera um executável único (com os dados embutidos) para cada sistema de PC,
+um `.zip` de cada um e o `.apk` do Android em `build/`:
 
 - `build/PiqueProp-<versão>-linux.zip` contém `PiqueProp.x86_64`. No Linux, talvez
   seja preciso rodar `chmod +x PiqueProp.x86_64` antes de abrir.
 - `build/PiqueProp-<versão>-windows.zip` contém `PiqueProp.exe`. Por não ser
   assinado, o Windows pode mostrar o aviso do SmartScreen. Clique em
   *Mais informações → Executar assim mesmo*.
+- `build/PiqueProp-<versão>-android.apk` é o jogo para celulares Android 7 ou mais
+  novos com processador de 64 bits (arm64). Veja como instalar em
+  [Instalar o APK no celular](#instalar-o-apk-no-celular).
 
 A versão vem de `config/version` no `project.godot` e aparece no rodapé do menu
 principal. Todos os jogadores precisam da mesma versão.
@@ -213,6 +233,121 @@ Ao conectar, o jogo confere a versão antes de deixar o jogador entrar:
   então só aparece "A conexão com o host caiu".
 
 Suba `config/version` sempre que distribuir uma build nova.
+
+### Android
+
+O APK é distribuído à mão, sem loja. Os presets ficam em `export_presets.cfg`
+(pacote `com.guszille.piqueprop`, só arm64-v8a, sem build do Gradle). A orientação
+paisagem vem de `display/window/handheld/orientation` no `project.godot`.
+
+Pré-requisitos (uma vez por máquina):
+
+1. **Modelos de exportação completos** do Godot 4.7.2 (os de Android são
+   `android_debug.apk`, `android_release.apk` e `android_source.zip` em
+   `~/.local/share/godot/export_templates/4.7.2.stable/`).
+2. **JDK 17**, separado do Java do sistema. Aqui está em `~/.local/jdk-17`
+   (Eclipse Temurin 17).
+3. **Android SDK** em `~/Android/Sdk`: as command-line tools em
+   `cmdline-tools/latest` e, pelo `sdkmanager`, os pacotes `platform-tools`,
+   `build-tools;35.0.1` e `platforms;android-35`:
+
+   ```bash
+   JAVA_HOME=~/.local/jdk-17 ~/Android/Sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/Android/Sdk "platform-tools" "build-tools;35.0.1" "platforms;android-35"
+   ```
+
+4. **Chave de depuração** do Android (a senha "android" é pública, padrão do SDK):
+
+   ```bash
+   keytool -genkeypair -keyalg RSA -keysize 2048 -alias androiddebugkey -keypass android -storepass android -keystore ~/.local/share/godot/keystores/debug.keystore -dname "CN=Android Debug,O=Android,C=US" -validity 9999 -deststoretype pkcs12
+   ```
+
+5. **Configurações do editor** (*Editor → Configurações do editor → Exportação →
+   Android*, gravadas em `~/.config/godot/editor_settings-4.7.tres`): *Java SDK
+   Path* = `~/.local/jdk-17`, *Android SDK Path* = `~/Android/Sdk`, *Debug Keystore*
+   = o arquivo acima, com usuário `androiddebugkey` e senha `android`.
+
+O Godot 4.7.2 avisa "Could not find version of build tools that matches Target
+SDK, using 35.0.1": ele mira o Android 16 (SDK 36), mas sem o Gradle qualquer
+build-tools recente serve para assinar.
+
+#### Chave de release
+
+Por padrão o `tools/export.sh` assina o APK com a chave de depuração, o que basta
+para instalar à mão. Para ter uma chave só sua, crie-a uma vez (o `keytool` pede
+a senha e os dados do certificado):
+
+```bash
+keytool -genkeypair -v -keyalg RSA -keysize 2048 -validity 10000 -alias piqueprop -keystore ~/.local/share/godot/keystores/piqueprop-release.keystore
+```
+
+Guarde uma cópia do arquivo e a senha fora do computador e nunca coloque a chave
+no repositório. Para exportar com ela, defina as variáveis que o Godot lê:
+
+```bash
+export GODOT_ANDROID_KEYSTORE_RELEASE_PATH=~/.local/share/godot/keystores/piqueprop-release.keystore
+export GODOT_ANDROID_KEYSTORE_RELEASE_USER=piqueprop
+export GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD='sua senha'
+tools/export.sh
+```
+
+O Android só aceita atualizar o jogo com um APK assinado pela mesma chave. Quem
+instalou uma versão assinada com a chave de depuração precisa desinstalá-la antes
+de instalar a assinada com a de release (e vice-versa).
+
+#### Instalar o APK no celular
+
+**Sem cabo:** mande o `PiqueProp-<versão>-android.apk` para o celular (WhatsApp,
+Google Drive, e-mail, cabo USB...) e toque nele no app *Arquivos* ou no
+navegador. Na primeira vez o Android pede para permitir *Instalar apps
+desconhecidos* para esse app; permita e volte. O Play Protect pode avisar que o
+app não é conhecido: toque em *Mais detalhes → Instalar mesmo assim*.
+
+**Com cabo (adb):** no celular, ative as *Opções do desenvolvedor* (toque 7 vezes
+em *Configurações → Sobre o telefone → Número da versão*) e a *Depuração USB*.
+Conecte o cabo, aceite o pedido de depuração no celular e rode:
+
+```bash
+~/Android/Sdk/platform-tools/adb install -r build/PiqueProp-0.4.0-android.apk
+```
+
+O celular precisa estar no mesmo Wi-Fi que os outros jogadores (veja
+[Jogar em rede local](#jogar-em-rede-local-lan)).
+
+### iOS
+
+O preset "iOS" está pronto em `export_presets.cfg` (bundle id
+`com.guszille.piqueprop`, paisagem pelo `project.godot` e o texto do pedido de
+acesso à rede local, `NSLocalNetworkUsageDescription`, em
+*application/additional_plist_content*), mas o `tools/export.sh` não exporta para
+iOS: isso exige um Mac com Xcode.
+
+Passo a passo num Mac:
+
+1. Instale o **Godot 4.7.2** para macOS e os modelos de exportação da mesma
+   versão (*Editor → Gerenciar modelos de exportação*).
+2. Instale o **Xcode** pela App Store, abra-o uma vez para instalar os componentes
+   e entre com seu Apple ID em *Xcode → Settings → Accounts*. Um Apple ID comum
+   cria um *Personal Team* grátis.
+3. Abra o projeto no Godot, vá em *Projeto → Exportar → iOS* e preencha *App
+   Store Team ID* com o ID do seu time (aparece no Xcode, em *Accounts*, ou no
+   site developer.apple.com). O preset já vem com *Export Project Only* ligado.
+4. Clique em *Exportar Projeto* e escolha `build/ios/PiqueProp.ipa`. O Godot gera
+   o projeto do Xcode (`PiqueProp.xcodeproj`) nessa pasta.
+5. Abra o `.xcodeproj` no Xcode. Em *Signing & Capabilities*, marque *Automatically
+   manage signing* e escolha o seu time. Se o bundle id já estiver em uso por
+   outra conta, troque-o (por exemplo, `com.seunome.piqueprop`).
+6. Conecte o iPhone por cabo, confie no computador e ative o *Modo de
+   Desenvolvedor* no iPhone (*Ajustes → Privacidade e Segurança → Modo de
+   Desenvolvedor*). Escolha o iPhone como destino e clique em *Run* (▶).
+7. Na primeira vez, autorize o desenvolvedor no iPhone em *Ajustes → Geral → VPN
+   e Gerenciamento de Dispositivos*. Ao hospedar ou entrar numa partida, o iOS
+   pergunta se o jogo pode acessar a rede local: é preciso permitir.
+
+Com o Apple ID grátis o app para de abrir depois de **7 dias** (é só rodar de novo
+pelo Xcode) e vale para no máximo 3 apps por aparelho. Com a conta paga do Apple
+Developer Program (US$ 99 por ano) a assinatura vale um ano e dá para distribuir
+para outros iPhones por Ad Hoc (aparelhos cadastrados pelo UDID) ou pelo
+TestFlight.
 
 ## Jogar em rede local (LAN)
 
@@ -244,6 +379,12 @@ nada disto.
 | F4 | pula para a próxima fase (preparação → caçada → fim → nova rodada) |
 | F5 | troca para o próximo mapa (Casa → Fábrica → Parque) |
 | F6 | pausa e retoma o cronômetro |
+
+As builds de depuração também mostram o FPS no canto de cima.
+
+Para testar os controles de toque no PC, simule um celular com `-- --mobile`: o mouse
+vira um dedo, a interface fica maior e aparecem os botões de toque (vários dedos ao
+mesmo tempo só num aparelho de verdade).
 
 F1, F4, F5 e F6 valem para a partida inteira e aparecem como aviso para todos.
 F2 e F3 só mudam a sua tela. As teclas também funcionam com várias instâncias,

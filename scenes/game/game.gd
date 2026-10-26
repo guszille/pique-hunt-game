@@ -4,6 +4,8 @@ extends Node3D
 ## (ou para quem ligou a câmera livre de depuração, F2).
 
 const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
+## Alcance da sombra do sol nos celulares (a GPU é bem mais fraca).
+const MOBILE_SHADOW_DISTANCE := 35.0
 
 var map: MapBase
 
@@ -18,6 +20,9 @@ func _ready() -> void:
 	map.name = "Map"
 	add_child(map)
 	move_child(map, 0)
+	if OS.has_feature("mobile"):
+		for sun: DirectionalLight3D in map.find_children("*", "DirectionalLight3D", true, false):
+			sun.directional_shadow_max_distance = minf(sun.directional_shadow_max_distance, MOBILE_SHADOW_DISTANCE)
 	spectator_camera.global_position = map.get_seeker_release() + Vector3(0, 8, 6)
 	spectator_camera.look_at(map.get_seeker_release())
 	spawner.spawn_function = _spawn_player
