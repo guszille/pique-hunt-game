@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/props/prop.gd" id="1_rqolk"]
+
+[node name="root" type="StaticBody3D" unique_id=1504705539]
+script = ExtResource("1_rqolk")

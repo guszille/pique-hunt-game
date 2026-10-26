@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/game/game.gd" id="1_game"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="2_hud"]
+
+[ext_resource type="Script" path="res://scenes/game/spectator_camera.gd" id="1_72eoj"]
+
+[node name="Game" type="Node3D" unique_id=1024836469]
+script = ExtResource("1_game")
+
+[node name="Players" type="Node3D" parent="." unique_id=343606359]
+
+[node name="PlayerSpawner" type="MultiplayerSpawner" parent="." unique_id=475368272]
+spawn_path = NodePath("../Players")
+
+[node name="SpectatorCamera" type="Camera3D" parent="." unique_id=1516206328]
+fov = 70.0
+script = ExtResource("1_72eoj")
+
+[node name="HUD" parent="." instance=ExtResource("2_hud")]

@@ -1,0 +1,38 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Pique-Prop"
+config/description="Pique-esconde multiplayer 3D no estilo prop-hunt."
+config/version="0.3.3"
+run/main_scene="res://scenes/ui/main_menu.tscn"
+config/features=PackedStringArray("4.7", "Forward Plus")
+config/icon="res://icon.svg"
+
+[autoload]
+
+Controls="*res://autoload/controls.gd"
+Network="*res://autoload/network.gd"
+GameState="*res://autoload/game_state.gd"
+DebugTools="*res://autoload/debug_tools.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[layer_names]
+
+3d_physics/layer_1="mundo"
+3d_physics/layer_2="props"
+3d_physics/layer_3="jogadores"
